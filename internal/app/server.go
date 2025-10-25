@@ -1,6 +1,17 @@
 package app
 
+import "log"
+
 func Start() {
-	app := setUpRestServer()
+	db, cfg, err := setupDependencies("example")
+	if err != nil {
+		log.Fatalf("Failed to setup dependencies: %v", err)
+	}
+
+	app, err := setupRestServer(db, cfg)
+	if err != nil {
+		log.Fatalf("Failed to setup Rest server: %v", err)
+	}
+
 	app.Listen(":8000")
 }

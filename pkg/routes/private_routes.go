@@ -5,5 +5,5 @@ import (
 )
 
 func RegisterPrivateRoutes(app *fiber.App) {
-
+	
 }
