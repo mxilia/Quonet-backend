@@ -27,6 +27,13 @@ func ToUserResponseList(users []*entities.User) []*UserResponse {
 	return res
 }
 
+func FromCreateUserByGoogleRequest(req *CreateUserByGoogleRequest) *entities.User {
+	return &entities.User{
+		Email:      req.Email,
+		ProfileUrl: req.ProfileUrl,
+	}
+}
+
 func FromUserPatchRequest(user *UserPatchRequest) *entities.User {
 	return &entities.User{
 		Handler:    user.Handler,

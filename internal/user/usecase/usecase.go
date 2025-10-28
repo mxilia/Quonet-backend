@@ -30,6 +30,7 @@ func (s *UserService) GoogleUserEntry(user *entities.User) (*entities.User, erro
 		return registeredUser, nil
 	}
 
+	registeredUser = &entities.User{}
 	if err := s.repo.Save(registeredUser); err != nil {
 		return nil, err
 	}

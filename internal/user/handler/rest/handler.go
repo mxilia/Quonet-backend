@@ -8,7 +8,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/internal/entities"
 	"github.com/mxilia/Conflux-backend/internal/user/dto"
 	"github.com/mxilia/Conflux-backend/internal/user/usecase"
 	appError "github.com/mxilia/Conflux-backend/pkg/apperror"
@@ -77,9 +76,7 @@ func (h *HttpUserHandler) GoogleCallBack(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "failed to decode user info")
 	}
 
-	userInfo := &entities.User{Email: googleReq.Email, ProfileUrl: googleReq.ProfileUrl}
-
-	user, err := h.userUseCase.GoogleUserEntry(userInfo)
+	user, err := h.userUseCase.GoogleUserEntry(dto.FromCreateUserByGoogleRequest(&googleReq))
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to create user via google login")
 	}
