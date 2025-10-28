@@ -3,7 +3,7 @@ package app
 import "log"
 
 func Start() {
-	db, cfg, err := setupDependencies("example")
+	db, cfg, err := setupDependencies("dev")
 	if err != nil {
 		log.Fatalf("Failed to setup dependencies: %v", err)
 	}

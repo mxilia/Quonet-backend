@@ -32,8 +32,8 @@ func (h *HttpThreadHandler) CreateThread(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(dto.ToThreadResponse(thread))
 }
 
-func (h *HttpThreadHandler) GetAllThreads(c *fiber.Ctx) error {
-	threads, err := h.threadUseCase.GetAllThreads()
+func (h *HttpThreadHandler) FindAllThreads(c *fiber.Ctx) error {
+	threads, err := h.threadUseCase.FindAllThreads()
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -41,14 +41,14 @@ func (h *HttpThreadHandler) GetAllThreads(c *fiber.Ctx) error {
 	return c.JSON(dto.ToThreadResponseList(threads))
 }
 
-func (h *HttpThreadHandler) GetThreadByID(c *fiber.Ctx) error {
+func (h *HttpThreadHandler) FindThreadByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	threadID, err := strconv.Atoi(id)
 	if err != nil || threadID < 0 {
 		return responses.ErrorWithMessage(c, err, "invalid id")
 	}
 
-	thread, err := h.threadUseCase.GetThreadByID(uint(threadID))
+	thread, err := h.threadUseCase.FindThreadByID(uint(threadID))
 	if err != nil {
 		return responses.Error(c, err)
 	}

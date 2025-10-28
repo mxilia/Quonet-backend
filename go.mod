@@ -5,6 +5,7 @@ go 1.25.2
 require gorm.io/gorm v1.31.0
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/gofiber/fiber/v2 v2.52.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -25,6 +26,7 @@ require (
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.43.0 // indirect
+	golang.org/x/oauth2 v0.32.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
 	golang.org/x/text v0.30.0 // indirect

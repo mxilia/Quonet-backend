@@ -1,1 +1,16 @@
 package repository
+
+import (
+	"github.com/google/uuid"
+	"github.com/mxilia/Conflux-backend/internal/entities"
+)
+
+type UserRepository interface {
+	Save(user *entities.User) error
+	FindAll() ([]*entities.User, error)
+	FindByID(id uuid.UUID) (*entities.User, error)
+	FindByHandler(handler string) (*entities.User, error)
+	FindByEmail(email string) (*entities.User, error)
+	Patch(id uuid.UUID, user *entities.User) error
+	Delete(id uuid.UUID) error
+}

@@ -6,7 +6,7 @@ import (
 
 type ThreadUseCase interface {
 	CreateThread(thread *entities.Thread) error
-	GetAllThreads() ([]*entities.Thread, error)
-	GetThreadByID(id uint) (*entities.Thread, error)
+	FindAllThreads() ([]*entities.Thread, error)
+	FindThreadByID(id uint) (*entities.Thread, error)
 	DeleteThread(id uint) error
 }

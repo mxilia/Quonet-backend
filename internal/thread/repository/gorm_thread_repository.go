@@ -20,7 +20,7 @@ func (r *GormThreadRepository) Save(thread *entities.Thread) error {
 	return nil
 }
 
-func (r *GormThreadRepository) GetAll() ([]*entities.Thread, error) {
+func (r *GormThreadRepository) FindAll() ([]*entities.Thread, error) {
 	var threadsValue []entities.Thread
 	if err := r.db.Find(&threadsValue).Error; err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (r *GormThreadRepository) GetAll() ([]*entities.Thread, error) {
 	return threads, nil
 }
 
-func (r *GormThreadRepository) GetByID(id uint) (*entities.Thread, error) {
+func (r *GormThreadRepository) FindByID(id uint) (*entities.Thread, error) {
 	var thread entities.Thread
 	if err := r.db.First(&thread, id).Error; err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (r *GormThreadRepository) GetByID(id uint) (*entities.Thread, error) {
 }
 
 func (r *GormThreadRepository) Delete(id uint) error {
-	result := r.db.Delete(id)
+	result := r.db.Delete(&entities.Thread{}, id)
 	if result.Error != nil {
 		return result.Error
 	}

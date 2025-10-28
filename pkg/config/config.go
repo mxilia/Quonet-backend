@@ -19,6 +19,10 @@ type Config struct {
 	JWTSecret string
 
 	FRONTEND_URL string
+
+	GOOGLE_CLIENT_ID          string
+	GOOGLE_CLIENT_SECRET      string
+	GOOGLE_OAUTH_REDIRECT_URL string
 }
 
 func GetConfig(env string) *Config {
@@ -31,13 +35,19 @@ func GetConfig(env string) *Config {
 	}
 
 	cfg := &Config{
-		DBHost:       getEnv("DB_HOST", "localhost"),
-		DBPort:       getEnv("DB_PORT", "5432"),
-		DBName:       getEnv("DB_NAME", "test"),
-		DBUser:       getEnv("DB_USER", "postgres"),
-		DBPassword:   getEnv("DB_PASSWORD", ""),
-		JWTSecret:    getEnv("JWT_SECRET", "doodoo123"),
+		DBHost:     getEnv("DB_HOST", "localhost"),
+		DBPort:     getEnv("DB_PORT", "5432"),
+		DBName:     getEnv("DB_NAME", "test"),
+		DBUser:     getEnv("DB_USER", "postgres"),
+		DBPassword: getEnv("DB_PASSWORD", ""),
+
+		JWTSecret: getEnv("JWT_SECRET", "doodoo123"),
+
 		FRONTEND_URL: getEnv("FRONTEND_URL", "http://localhost:3000"),
+
+		GOOGLE_CLIENT_ID:          getEnv("GOOGLE_CLIENT_ID", ""),
+		GOOGLE_CLIENT_SECRET:      getEnv("GOOGLE_CLIENT_SECRET", ""),
+		GOOGLE_OAUTH_REDIRECT_URL: getEnv("GOOGLE_OAUTH_REDIRECT_URL", ""),
 	}
 
 	cfg.DatabaseDSN = fmt.Sprintf(

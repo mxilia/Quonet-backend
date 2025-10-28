@@ -20,16 +20,16 @@ func (s *ThreadService) CreateThread(thread *entities.Thread) error {
 	return nil
 }
 
-func (s *ThreadService) GetAllThreads() ([]*entities.Thread, error) {
-	threads, err := s.repo.GetAll()
+func (s *ThreadService) FindAllThreads() ([]*entities.Thread, error) {
+	threads, err := s.repo.FindAll()
 	if err != nil {
 		return nil, err
 	}
 	return threads, nil
 }
 
-func (s *ThreadService) GetThreadByID(id uint) (*entities.Thread, error) {
-	thread, err := s.repo.GetByID(id)
+func (s *ThreadService) FindThreadByID(id uint) (*entities.Thread, error) {
+	thread, err := s.repo.FindByID(id)
 	if err != nil {
 		return nil, err
 	}
