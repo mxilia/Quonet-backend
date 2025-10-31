@@ -34,9 +34,9 @@ func FromCreateUserByGoogleRequest(req *CreateUserByGoogleRequest) *entities.Use
 	}
 }
 
-func FromUserPatchRequest(user *UserPatchRequest) *entities.User {
+func FromUserPatchRequest(req *UserPatchRequest) *entities.User {
 	return &entities.User{
-		Handler:    user.Handler,
-		ProfileUrl: user.ProfileUrl,
+		Handler:    req.Handler,
+		ProfileUrl: req.ProfileUrl,
 	}
 }

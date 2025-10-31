@@ -1,12 +1,13 @@
 package usecase
 
 import (
+	"github.com/google/uuid"
 	"github.com/mxilia/Conflux-backend/internal/entities"
 )
 
 type ThreadUseCase interface {
 	CreateThread(thread *entities.Thread) error
 	FindAllThreads() ([]*entities.Thread, error)
-	FindThreadByID(id uint) (*entities.Thread, error)
-	DeleteThread(id uint) error
+	FindThreadByID(id uuid.UUID) (*entities.Thread, error)
+	DeleteThread(id uuid.UUID) error
 }

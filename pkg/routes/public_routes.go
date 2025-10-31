@@ -12,10 +12,16 @@ import (
 	userRepository "github.com/mxilia/Conflux-backend/internal/user/repository"
 	userUseCase "github.com/mxilia/Conflux-backend/internal/user/usecase"
 
+	postHandler "github.com/mxilia/Conflux-backend/internal/post/handler/rest"
+	postRepository "github.com/mxilia/Conflux-backend/internal/post/repository"
+	postUseCase "github.com/mxilia/Conflux-backend/internal/post/usecase"
+
 	"github.com/mxilia/Conflux-backend/pkg/config"
 )
 
 func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
+
+	/* === Dependencies Wiring === */
 
 	threadRepo := threadRepository.NewGormThreadRepository(db)
 	threadUseCase := threadUseCase.NewThreadService(threadRepo)
@@ -24,6 +30,12 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	userRepo := userRepository.NewGormUserRepository(db)
 	userUseCase := userUseCase.NewUserService(userRepo)
 	userHandler := userHandler.NewHttpUserHandler(userUseCase, cfg)
+
+	postRepo := postRepository.NewGormPostRepository(db)
+	postUseCase := postUseCase.NewPostService(postRepo)
+	postHandler := postHandler.NewHttpPostHandler(postUseCase)
+
+	/* === Routes === */
 
 	api := app.Group("/api/v2")
 
@@ -38,15 +50,36 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	threadGroup.Post("/", threadHandler.CreateThread)
 	threadGroup.Get("/", threadHandler.FindAllThreads)
-	threadGroup.Get("/:id", threadHandler.FindThreadByID)
-	threadGroup.Delete("/:id", threadHandler.DeleteThread)
+	threadGroup.Get("/id/:id", threadHandler.FindThreadByID)
+	threadGroup.Delete("/:id", threadHandler.DeleteThread) /* Private Route */
 
 	userGroup := api.Group("/users")
 
 	userGroup.Get("/", userHandler.FindAllUsers)
-	userGroup.Get("/:id", userHandler.FindUserByID)
+	userGroup.Get("/id/:id", userHandler.FindUserByID)
 	userGroup.Get("/handler/:handler", userHandler.FindUserByHandler)
 	userGroup.Get("/email/:email", userHandler.FindUserByEmail)
+	/* Private Route */
 	userGroup.Patch("/:id", userHandler.PatchUser)
 	userGroup.Delete("/:id", userHandler.DeleteUser)
+
+	postGroup := api.Group("/posts")
+
+	postGroup.Post("/", postHandler.CreatePost)
+	postGroup.Get("/", postHandler.FindAllPosts)
+	postGroup.Get("/author/:id", postHandler.FindPostsByAuthorID)
+	postGroup.Get("/thread/:id", postHandler.FindPostsByThreadID)
+	postGroup.Get("/id/:id", postHandler.FindPostByID)
+	postGroup.Get("/title/:title", postHandler.FindPostByTitle)
+	/* Private Route */
+	postGroup.Get("/all", postHandler.FindAllPostsCoverPrivate)
+	postGroup.Get("/private", postHandler.FindAllPrivatePosts)
+	postGroup.Get("/all/author/:id", postHandler.FindPostsCoverPrivateByAuthorID)
+	postGroup.Get("/private/author/:id", postHandler.FindPrivatePostsByAuthorID)
+	postGroup.Get("/all/thread/:id", postHandler.FindPostsCoverPrivateByThreadID)
+	postGroup.Get("/private/thread/:id", postHandler.FindPrivatePostsByThreadID)
+	postGroup.Get("/private/:id", postHandler.FindPrivatePostByID)
+	postGroup.Get("/private/title/:title", postHandler.FindPrivatePostByTitle)
+	postGroup.Patch("/:id", postHandler.PatchPost)
+	postGroup.Delete("/:id", postHandler.DeletePost)
 }

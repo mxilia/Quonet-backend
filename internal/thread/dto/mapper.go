@@ -4,7 +4,10 @@ import "github.com/mxilia/Conflux-backend/internal/entities"
 
 func ToThreadResponse(thread *entities.Thread) *ThreadResponse {
 	return &ThreadResponse{
-		Title: thread.Title,
+		ID:        thread.ID,
+		Title:     thread.Title,
+		Posts:     thread.Posts,
+		CreatedAt: thread.CreatedAt,
 	}
 }
 

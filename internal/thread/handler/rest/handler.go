@@ -1,9 +1,8 @@
 package rest
 
 import (
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/mxilia/Conflux-backend/internal/entities"
 	"github.com/mxilia/Conflux-backend/internal/thread/dto"
 	"github.com/mxilia/Conflux-backend/internal/thread/usecase"
@@ -42,13 +41,12 @@ func (h *HttpThreadHandler) FindAllThreads(c *fiber.Ctx) error {
 }
 
 func (h *HttpThreadHandler) FindThreadByID(c *fiber.Ctx) error {
-	id := c.Params("id")
-	threadID, err := strconv.Atoi(id)
-	if err != nil || threadID < 0 {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
 		return responses.ErrorWithMessage(c, err, "invalid id")
 	}
 
-	thread, err := h.threadUseCase.FindThreadByID(uint(threadID))
+	thread, err := h.threadUseCase.FindThreadByID(id)
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -57,13 +55,12 @@ func (h *HttpThreadHandler) FindThreadByID(c *fiber.Ctx) error {
 }
 
 func (h *HttpThreadHandler) DeleteThread(c *fiber.Ctx) error {
-	id := c.Params("id")
-	threadID, err := strconv.Atoi(id)
-	if err != nil || threadID < 0 {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
 		return responses.ErrorWithMessage(c, err, "invalid id")
 	}
 
-	if err := h.threadUseCase.DeleteThread(uint(threadID)); err != nil {
+	if err := h.threadUseCase.DeleteThread(id); err != nil {
 		return responses.Error(c, err)
 	}
 

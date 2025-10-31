@@ -2,7 +2,7 @@ package dto
 
 type CreateUserByGoogleRequest struct {
 	ProfileUrl string `json:"picture"`
-	Email      string `json:"email"`
+	Email      string `json:"email" validate:"required"`
 }
 
 type UserPatchRequest struct {

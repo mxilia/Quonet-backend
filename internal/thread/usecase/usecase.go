@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"github.com/google/uuid"
 	"github.com/mxilia/Conflux-backend/internal/entities"
 	"github.com/mxilia/Conflux-backend/internal/thread/repository"
 )
@@ -28,7 +29,7 @@ func (s *ThreadService) FindAllThreads() ([]*entities.Thread, error) {
 	return threads, nil
 }
 
-func (s *ThreadService) FindThreadByID(id uint) (*entities.Thread, error) {
+func (s *ThreadService) FindThreadByID(id uuid.UUID) (*entities.Thread, error) {
 	thread, err := s.repo.FindByID(id)
 	if err != nil {
 		return nil, err
@@ -36,7 +37,7 @@ func (s *ThreadService) FindThreadByID(id uint) (*entities.Thread, error) {
 	return thread, nil
 }
 
-func (s *ThreadService) DeleteThread(id uint) error {
+func (s *ThreadService) DeleteThread(id uuid.UUID) error {
 	if err := s.repo.Delete(id); err != nil {
 		return err
 	}

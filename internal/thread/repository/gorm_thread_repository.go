@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/google/uuid"
 	"github.com/mxilia/Conflux-backend/internal/entities"
 	"gorm.io/gorm"
 )
@@ -33,7 +34,7 @@ func (r *GormThreadRepository) FindAll() ([]*entities.Thread, error) {
 	return threads, nil
 }
 
-func (r *GormThreadRepository) FindByID(id uint) (*entities.Thread, error) {
+func (r *GormThreadRepository) FindByID(id uuid.UUID) (*entities.Thread, error) {
 	var thread entities.Thread
 	if err := r.db.First(&thread, id).Error; err != nil {
 		return nil, err
@@ -41,7 +42,7 @@ func (r *GormThreadRepository) FindByID(id uint) (*entities.Thread, error) {
 	return &thread, nil
 }
 
-func (r *GormThreadRepository) Delete(id uint) error {
+func (r *GormThreadRepository) Delete(id uuid.UUID) error {
 	result := r.db.Delete(&entities.Thread{}, id)
 	if result.Error != nil {
 		return result.Error

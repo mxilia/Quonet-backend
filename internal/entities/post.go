@@ -14,11 +14,11 @@ type Post struct {
 	ThreadID     uuid.UUID `gorm:"type:uuid" json:"thread_id"`
 	Content      string    `gorm:"type:text" json:"content"`
 	ThumbnailUrl string    `gorm:"type:varchar(512)" json:"thumbnail_url"`
+	IsPrivate    bool      `gorm:"default:false" json:"is_private"`
 
-	Like    uint `gorm:"default:0" json:"like"`
-	Dislike uint `gorm:"default:0" json:"dislike"`
-
-	Comments []Comment `gorm:"foreignKey:RootID" json:"comments"`
+	Author   User      `gorm:"foreignKey:AuthorID" json:"author"`
+	Likes    []Like    `gorm:"polymorphic:Parent;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"likes"`
+	Comments []Comment `gorm:"foreignKey:RootID;constraint:OnDelete:CASCADE" json:"comments"`
 
 	CreatedAt time.Time `gorm:"type:timestamp;index:index_created_id;priority:1" json:"created_at"`
 }
