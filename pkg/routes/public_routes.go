@@ -16,6 +16,10 @@ import (
 	postRepository "github.com/mxilia/Conflux-backend/internal/post/repository"
 	postUseCase "github.com/mxilia/Conflux-backend/internal/post/usecase"
 
+	likeHandler "github.com/mxilia/Conflux-backend/internal/like/handler/rest"
+	likeRepository "github.com/mxilia/Conflux-backend/internal/like/repository"
+	likeUseCase "github.com/mxilia/Conflux-backend/internal/like/usecase"
+
 	"github.com/mxilia/Conflux-backend/pkg/config"
 )
 
@@ -34,6 +38,10 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	postRepo := postRepository.NewGormPostRepository(db)
 	postUseCase := postUseCase.NewPostService(postRepo)
 	postHandler := postHandler.NewHttpPostHandler(postUseCase)
+
+	likeRepo := likeRepository.NewGormLikeRepository(db)
+	likeUseCase := likeUseCase.NewLikeService(likeRepo)
+	likeHandler := likeHandler.NewHttpLikeHandler(likeUseCase)
 
 	/* === Routes === */
 
@@ -82,4 +90,15 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	postGroup.Get("/private/title/:title", postHandler.FindPrivatePostByTitle)
 	postGroup.Patch("/:id", postHandler.PatchPost)
 	postGroup.Delete("/:id", postHandler.DeletePost)
+
+	likeGroup := api.Group("/likes")
+
+	likeGroup.Post("/", likeHandler.CreateLike)
+	likeGroup.Get("/", likeHandler.FindAllLikes)
+	likeGroup.Get("/owner/:id", likeHandler.FindLikesByOwnerID)
+	likeGroup.Get("/parent/:id", likeHandler.FindLikesByParentID)
+	likeGroup.Get("/id/:id", likeHandler.FindLikeByID)
+	likeGroup.Get("/count/:parent_type/:id", likeHandler.LikeCountByParentID)
+	likeGroup.Get("/is_liked/:parent_type/:parent_id/:my_id", likeHandler.IsParentLikedByMe)
+	likeGroup.Delete("/:id", likeHandler.DeleteLike)
 }
