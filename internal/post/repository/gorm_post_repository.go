@@ -24,7 +24,7 @@ func (r *GormPostRepository) Save(post *entities.Post) error {
 /* No private posts involved */
 func (r *GormPostRepository) FindAll() ([]*entities.Post, error) {
 	var postsValue []entities.Post
-	if err := r.db.Where("is_private = ?", false).Find(&postsValue).Error; err != nil {
+	if err := r.db.Preload("Author").Where("is_private = ?", false).Find(&postsValue).Error; err != nil {
 		return nil, err
 	}
 
@@ -37,7 +37,7 @@ func (r *GormPostRepository) FindAll() ([]*entities.Post, error) {
 
 func (r *GormPostRepository) FindByAuthorID(id uuid.UUID) ([]*entities.Post, error) {
 	var postsValue []entities.Post
-	if err := r.db.Where("is_private = ?", false).Where("author_id = ?", id).Find(&postsValue).Error; err != nil {
+	if err := r.db.Preload("Author").Where("is_private = ?", false).Where("author_id = ?", id).Find(&postsValue).Error; err != nil {
 		return nil, err
 	}
 
@@ -50,7 +50,7 @@ func (r *GormPostRepository) FindByAuthorID(id uuid.UUID) ([]*entities.Post, err
 
 func (r *GormPostRepository) FindByThreadID(id uuid.UUID) ([]*entities.Post, error) {
 	var postsValue []entities.Post
-	if err := r.db.Where("is_private = ?", false).Where("thread_id = ?", id).Find(&postsValue).Error; err != nil {
+	if err := r.db.Preload("Author").Where("is_private = ?", false).Where("thread_id = ?", id).Find(&postsValue).Error; err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func (r *GormPostRepository) FindByThreadID(id uuid.UUID) ([]*entities.Post, err
 
 func (r *GormPostRepository) FindByID(id uuid.UUID) (*entities.Post, error) {
 	var post entities.Post
-	if err := r.db.Where("is_private = ?", false).First(&post, id).Error; err != nil {
+	if err := r.db.Preload("Author").Where("is_private = ?", false).First(&post, id).Error; err != nil {
 		return nil, err
 	}
 	return &post, nil
@@ -71,7 +71,7 @@ func (r *GormPostRepository) FindByID(id uuid.UUID) (*entities.Post, error) {
 
 func (r *GormPostRepository) FindByTitle(title string) (*entities.Post, error) {
 	var post entities.Post
-	if err := r.db.Where("is_private = ?", false).Where("title = ?", title).First(&post).Error; err != nil {
+	if err := r.db.Preload("Author").Where("is_private = ?", false).Where("title = ?", title).First(&post).Error; err != nil {
 		return nil, err
 	}
 	return &post, nil

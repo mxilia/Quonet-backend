@@ -12,8 +12,8 @@ type Comment struct {
 	AuthorID uuid.UUID `gorm:"type:uuid" json:"author_id"`
 	Content  string    `gorm:"type:text" json:"content"`
 
-	ParentID uuid.UUID `gorm:"type:uuid;index:index_created_id;priority:2" json:"parent_id"`
-	RootID   uuid.UUID `gorm:"type:uuid;index:index_created_id;priority:1" json:"root_id"`
+	ParentID *uuid.UUID `gorm:"type:uuid;index:index_created_id;priority:2" json:"parent_id"`
+	RootID   uuid.UUID  `gorm:"type:uuid;index:index_created_id;priority:1" json:"root_id"`
 
 	Author   User      `gorm:"foreignKey:AuthorID" json:"author"`
 	Likes    []Like    `gorm:"polymorphic:Parent;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"likes"`

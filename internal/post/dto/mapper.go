@@ -12,6 +12,7 @@ func ToPostResponse(post *entities.Post) *PostResponse {
 		ThumbnailUrl: post.ThumbnailUrl,
 		IsPrivate:    post.IsPrivate,
 
+		Author:   post.Author,
 		Likes:    post.Likes,
 		Comments: post.Comments,
 

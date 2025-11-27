@@ -213,8 +213,7 @@ func (h *HttpPostHandler) DeletePost(c *fiber.Ctx) error {
 	}
 
 	if err := h.usecase.DeletePost(id); err != nil {
-		return responses.ErrorWithMessage(c, err, "failed to delete post by id")
+		return responses.ErrorWithMessage(c, err, "failed to delete")
 	}
-
 	return responses.Message(c, fiber.StatusOK, "deleted successfully")
 }

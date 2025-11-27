@@ -19,9 +19,9 @@ func setupDependencies(env string) (*gorm.DB, *config.Config, error) {
 	}
 
 	if env == "" {
-		db.Migrator().DropTable(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{})
+		db.Migrator().DropTable(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}, &entities.Comment{})
 	}
-	if err := db.AutoMigrate(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}); err != nil {
+	if err := db.AutoMigrate(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}, &entities.Comment{}); err != nil {
 		return nil, nil, err
 	}
 
@@ -32,7 +32,7 @@ func setupRestServer(db *gorm.DB, cfg *config.Config) (*fiber.App, error) {
 	app := fiber.New()
 	middleware.FiberMiddleware(app, cfg)
 	routes.RegisterPublicRoutes(app, db, cfg)
-	routes.RegisterPrivateRoutes(app)
+	routes.RegisterPrivateRoutes(app, db, cfg)
 	routes.RegisterNotFoundRoute(app)
 	return app, nil
 }

@@ -7,6 +7,8 @@ import (
 	"github.com/mxilia/Conflux-backend/internal/entities"
 )
 
+/* Will modify this */
+
 type PostResponse struct {
 	ID           uuid.UUID `json:"id"`
 	Title        string    `json:"title"`
@@ -16,6 +18,7 @@ type PostResponse struct {
 	ThumbnailUrl string    `json:"thumbnail_url"`
 	IsPrivate    bool      `json:"is_private"`
 
+	Author   entities.User      `json:"author"`
 	Likes    []entities.Like    `json:"like"`
 	Comments []entities.Comment `json:"comments"`
 

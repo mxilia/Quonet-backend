@@ -16,9 +16,9 @@ import (
 	postRepository "github.com/mxilia/Conflux-backend/internal/post/repository"
 	postUseCase "github.com/mxilia/Conflux-backend/internal/post/usecase"
 
-	likeHandler "github.com/mxilia/Conflux-backend/internal/like/handler/rest"
-	likeRepository "github.com/mxilia/Conflux-backend/internal/like/repository"
-	likeUseCase "github.com/mxilia/Conflux-backend/internal/like/usecase"
+	commentHandler "github.com/mxilia/Conflux-backend/internal/comment/handler/rest"
+	commentRepository "github.com/mxilia/Conflux-backend/internal/comment/repository"
+	commentUseCase "github.com/mxilia/Conflux-backend/internal/comment/usecase"
 
 	"github.com/mxilia/Conflux-backend/pkg/config"
 )
@@ -39,9 +39,9 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	postUseCase := postUseCase.NewPostService(postRepo)
 	postHandler := postHandler.NewHttpPostHandler(postUseCase)
 
-	likeRepo := likeRepository.NewGormLikeRepository(db)
-	likeUseCase := likeUseCase.NewLikeService(likeRepo)
-	likeHandler := likeHandler.NewHttpLikeHandler(likeUseCase)
+	commentRepo := commentRepository.NewGormCommentRepository(db)
+	commentUseCase := commentUseCase.NewCommentService(commentRepo)
+	commentHandler := commentHandler.NewHttpCommentHandler(commentUseCase)
 
 	/* === Routes === */
 
@@ -56,10 +56,8 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	threadGroup := api.Group("/threads")
 
-	threadGroup.Post("/", threadHandler.CreateThread)
 	threadGroup.Get("/", threadHandler.FindAllThreads)
 	threadGroup.Get("/id/:id", threadHandler.FindThreadByID)
-	threadGroup.Delete("/:id", threadHandler.DeleteThread) /* Private Route */
 
 	userGroup := api.Group("/users")
 
@@ -67,38 +65,19 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	userGroup.Get("/id/:id", userHandler.FindUserByID)
 	userGroup.Get("/handler/:handler", userHandler.FindUserByHandler)
 	userGroup.Get("/email/:email", userHandler.FindUserByEmail)
-	/* Private Route */
-	userGroup.Patch("/:id", userHandler.PatchUser)
-	userGroup.Delete("/:id", userHandler.DeleteUser)
 
 	postGroup := api.Group("/posts")
 
-	postGroup.Post("/", postHandler.CreatePost)
 	postGroup.Get("/", postHandler.FindAllPosts)
 	postGroup.Get("/author/:id", postHandler.FindPostsByAuthorID)
 	postGroup.Get("/thread/:id", postHandler.FindPostsByThreadID)
 	postGroup.Get("/id/:id", postHandler.FindPostByID)
 	postGroup.Get("/title/:title", postHandler.FindPostByTitle)
-	/* Private Route */
-	postGroup.Get("/all", postHandler.FindAllPostsCoverPrivate)
-	postGroup.Get("/private", postHandler.FindAllPrivatePosts)
-	postGroup.Get("/all/author/:id", postHandler.FindPostsCoverPrivateByAuthorID)
-	postGroup.Get("/private/author/:id", postHandler.FindPrivatePostsByAuthorID)
-	postGroup.Get("/all/thread/:id", postHandler.FindPostsCoverPrivateByThreadID)
-	postGroup.Get("/private/thread/:id", postHandler.FindPrivatePostsByThreadID)
-	postGroup.Get("/private/:id", postHandler.FindPrivatePostByID)
-	postGroup.Get("/private/title/:title", postHandler.FindPrivatePostByTitle)
-	postGroup.Patch("/:id", postHandler.PatchPost)
-	postGroup.Delete("/:id", postHandler.DeletePost)
 
-	likeGroup := api.Group("/likes")
+	commentGroup := api.Group("/comments")
 
-	likeGroup.Post("/", likeHandler.CreateLike)
-	likeGroup.Get("/", likeHandler.FindAllLikes)
-	likeGroup.Get("/owner/:id", likeHandler.FindLikesByOwnerID)
-	likeGroup.Get("/parent/:id", likeHandler.FindLikesByParentID)
-	likeGroup.Get("/id/:id", likeHandler.FindLikeByID)
-	likeGroup.Get("/count/:parent_type/:id", likeHandler.LikeCountByParentID)
-	likeGroup.Get("/is_liked/:parent_type/:parent_id/:my_id", likeHandler.IsParentLikedByMe)
-	likeGroup.Delete("/:id", likeHandler.DeleteLike)
+	commentGroup.Get("/", commentHandler.FindAllComments)
+	commentGroup.Get("/author/:author_id", commentHandler.FindCommentsByAuthorID)
+	commentGroup.Get("/parent/:parent_id", commentHandler.FindCommentsByParentID)
+	commentGroup.Get("/root/:root_id", commentHandler.FindCommentsByRootID)
 }
