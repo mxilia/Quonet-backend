@@ -9,11 +9,11 @@ import (
 
 type Post struct {
 	ID           uuid.UUID `gorm:"type:uuid;primaryKey;index:index_created_id;priority:2" json:"id"`
-	Title        string    `gorm:"type:varchar(255)" json:"title"`
+	Title        string    `gorm:"type:varchar(255)" json:"title"` // Need to validate
 	AuthorID     uuid.UUID `gorm:"type:uuid" json:"author_id"`
 	ThreadID     uuid.UUID `gorm:"type:uuid" json:"thread_id"`
-	Content      string    `gorm:"type:text" json:"content"`
-	ThumbnailUrl string    `gorm:"type:varchar(512)" json:"thumbnail_url"`
+	Content      string    `gorm:"type:text" json:"content"`               // Need to validate
+	ThumbnailUrl string    `gorm:"type:varchar(512)" json:"thumbnail_url"` // Need to validate
 	IsPrivate    bool      `gorm:"default:false" json:"is_private"`
 
 	Author   User      `gorm:"foreignKey:AuthorID" json:"author"`

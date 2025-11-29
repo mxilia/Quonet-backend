@@ -9,7 +9,7 @@ import (
 
 type Thread struct {
 	ID    uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Title string    `gorm:"type:varchar(255);unique" json:"title"`
+	Title string    `gorm:"type:varchar(255);unique" json:"title"` // Need to validate
 
 	Posts []Post `gorm:"foreignKey:ThreadID" json:"posts"`
 
