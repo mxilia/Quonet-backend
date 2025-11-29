@@ -19,7 +19,7 @@ type Comment struct {
 	Likes    []Like    `gorm:"polymorphic:Parent;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"likes"`
 	Comments []Comment `gorm:"foreignKey:ParentID;constraint:OnDelete:CASCADE;" json:"comments"`
 
-	CreatedAt time.Time `gorm:"type:timestamp" json:"created_at"`
+	CreatedAt time.Time `gorm:"type:timestamp;index:index_created_id;priority:3" json:"created_at"`
 }
 
 func (u *Comment) BeforeCreate(tx *gorm.DB) (err error) {
