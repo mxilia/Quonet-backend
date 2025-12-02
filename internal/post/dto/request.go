@@ -5,10 +5,10 @@ type CreatePostRequest struct {
 	AuthorID     string `json:"author_id" validate:"required"`
 	ThreadID     string `json:"thread_id" validate:"required"`
 	Content      string `json:"content" validate:"required"`
-	ThumbnailUrl string `json:"thumbnail_url"`
+	ThumbnailUrl string `json:"thumbnail_url,omitempty"`
 }
 
 type PostPatchRequest struct {
-	ThumbnailUrl string `json:"thumbnail_url"`
-	IsPrivate    bool   `json:"is_private"`
+	ThumbnailUrl string `json:"thumbnail_url,omitempty"`
+	IsPrivate    bool   `json:"is_private,omitempty"`
 }

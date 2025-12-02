@@ -6,7 +6,8 @@ import (
 )
 
 type ErrorResponse struct {
-	Error string `json:"error"`
+	Error   string `json:"error"`
+	Message string `json:"message"`
 }
 
 func Error(c *fiber.Ctx, err error) error {
@@ -14,5 +15,5 @@ func Error(c *fiber.Ctx, err error) error {
 }
 
 func ErrorWithMessage(c *fiber.Ctx, err error, message string) error {
-	return c.Status(appError.StatusCode(err)).JSON(ErrorResponse{Error: message})
+	return c.Status(appError.StatusCode(err)).JSON(ErrorResponse{Error: err.Error(), Message: message})
 }

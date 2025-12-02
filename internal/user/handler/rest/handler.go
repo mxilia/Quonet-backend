@@ -8,11 +8,14 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/mxilia/Conflux-backend/internal/entities"
+	sessionUseCase "github.com/mxilia/Conflux-backend/internal/session/usecase"
 	"github.com/mxilia/Conflux-backend/internal/user/dto"
 	"github.com/mxilia/Conflux-backend/internal/user/usecase"
 	appError "github.com/mxilia/Conflux-backend/pkg/apperror"
 	"github.com/mxilia/Conflux-backend/pkg/config"
 	"github.com/mxilia/Conflux-backend/pkg/responses"
+	"github.com/mxilia/Conflux-backend/pkg/token"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -20,9 +23,12 @@ import (
 type HttpUserHandler struct {
 	userUseCase       usecase.UserUseCase
 	oauthGoogleConfig *oauth2.Config
+	cfg               *config.Config
+	tokenMaker        *token.JWTMaker
+	sessionUseCase    sessionUseCase.SessionUseCase
 }
 
-func NewHttpUserHandler(userUseCase usecase.UserUseCase, cfg *config.Config) *HttpUserHandler {
+func NewHttpUserHandler(userUseCase usecase.UserUseCase, sessionUseCase sessionUseCase.SessionUseCase, cfg *config.Config) *HttpUserHandler {
 	return &HttpUserHandler{
 		userUseCase: userUseCase,
 		oauthGoogleConfig: &oauth2.Config{
@@ -32,7 +38,24 @@ func NewHttpUserHandler(userUseCase usecase.UserUseCase, cfg *config.Config) *Ht
 			Scopes:       []string{"email", "profile"},
 			Endpoint:     google.Endpoint,
 		},
+		cfg:            cfg,
+		tokenMaker:     token.NewJWTMaker(cfg),
+		sessionUseCase: sessionUseCase,
 	}
+}
+
+func (h *HttpUserHandler) GetUser(c *fiber.Ctx) error {
+	userID, err := uuid.Parse(c.Locals("user_id").(string))
+	if err != nil {
+		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
+	}
+
+	user, err := h.userUseCase.FindUserByID(userID)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+
+	return c.JSON(dto.ToUserResponse(user))
 }
 
 func (h *HttpUserHandler) GoogleLogin(c *fiber.Ctx) error {
@@ -70,6 +93,7 @@ func (h *HttpUserHandler) GoogleCallBack(c *fiber.Ctx) error {
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to get user info from google api")
 	}
+	defer resp.Body.Close()
 
 	var googleReq dto.CreateUserByGoogleRequest
 	if err := json.NewDecoder(resp.Body).Decode(&googleReq); err != nil {
@@ -78,9 +102,48 @@ func (h *HttpUserHandler) GoogleCallBack(c *fiber.Ctx) error {
 
 	user, err := h.userUseCase.GoogleUserEntry(dto.FromCreateUserByGoogleRequest(&googleReq))
 	if err != nil {
-		return responses.ErrorWithMessage(c, err, "failed to create user via google login")
+		return responses.ErrorWithMessage(c, err, "failed to login via google")
 	}
-	return c.JSON(dto.ToUserResponse(user))
+
+	accessToken, accessClaims, err := h.tokenMaker.CreateToken(user.ID, user.Email, user.Role, 10*time.Minute)
+	if err != nil {
+		return responses.ErrorWithMessage(c, appError.ErrInternalServer, "failed to create token")
+	}
+
+	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(user.ID, user.Email, user.Role, 30*24*time.Hour)
+	if err != nil {
+		return responses.ErrorWithMessage(c, appError.ErrInternalServer, "failed to create token")
+	}
+
+	session := &entities.Session{
+		ID:           refreshClaims.RegisteredClaims.ID,
+		UserEmail:    user.Email,
+		RefreshToken: refreshToken,
+		IsRevoked:    false,
+		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
+	}
+	if err := h.sessionUseCase.CreateSession(session); err != nil {
+		return responses.ErrorWithMessage(c, appError.ErrInternalServer, "failed to create session")
+	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "oauthstate",
+		Expires:  time.Now(),
+		HTTPOnly: true,
+		Secure:   false,
+	})
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    refreshToken,
+		Expires:  refreshClaims.RegisteredClaims.ExpiresAt.Time,
+		HTTPOnly: true,
+		Secure:   h.cfg.Env == "production",
+		SameSite: "Lax",
+		Domain:   h.cfg.Domain,
+	})
+
+	return c.JSON(dto.ToLoginResponse(user, accessToken, accessClaims))
 }
 
 func (h *HttpUserHandler) FindAllUsers(c *fiber.Ctx) error {
@@ -133,12 +196,34 @@ func (h *HttpUserHandler) PatchUser(c *fiber.Ctx) error {
 	}
 
 	userInfo := dto.FromUserPatchRequest(&req)
+
+	role, ok := c.Locals("role").(string)
+	if !ok {
+		return responses.Error(c, appError.ErrUnauthorized)
+	}
+
+	switch userInfo.Role {
+	case "":
+		break
+	case "owner":
+		return responses.Error(c, appError.ErrForbidden)
+	case "admin":
+		if role != "owner" {
+			return responses.Error(c, appError.ErrForbidden)
+		}
+	default:
+		if role == "member" {
+			return responses.Error(c, appError.ErrForbidden)
+		}
+	}
+
 	if err := h.userUseCase.PatchUser(userID, userInfo); err != nil {
 		return responses.Error(c, err)
 	}
 
 	return responses.Message(c, fiber.StatusOK, "patch successfully")
 }
+
 func (h *HttpUserHandler) DeleteUser(c *fiber.Ctx) error {
 	userID, err := uuid.Parse(c.Params("id"))
 	if err != nil {

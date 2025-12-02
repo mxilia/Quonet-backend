@@ -4,9 +4,10 @@ import "github.com/google/uuid"
 
 type LikeResponse struct {
 	ID         uuid.UUID `json:"id"`
-	OwnerID    uuid.UUID `json:"owner_id"`
+	AuthorID   uuid.UUID `json:"author_id"`
 	ParentID   uuid.UUID `json:"parent_id"`
 	ParentType string    `json:"parent_type"`
+	IsPositive bool      `json:"is_positive"`
 }
 
 type LikeCountResponse struct {

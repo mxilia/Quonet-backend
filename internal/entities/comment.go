@@ -16,10 +16,10 @@ type Comment struct {
 	RootID   uuid.UUID  `gorm:"type:uuid;index:index_created_id;priority:1" json:"root_id"`
 
 	Author   User      `gorm:"foreignKey:AuthorID" json:"author"`
-	Likes    []Like    `gorm:"polymorphic:Parent;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"likes"`
+	Likes    []Like    `gorm:"polymorphic:Parent;polymorphicValue:comment;constraint:OnDelete:CASCADE" json:"likes"`
 	Comments []Comment `gorm:"foreignKey:ParentID;constraint:OnDelete:CASCADE;" json:"comments"`
 
-	CreatedAt time.Time `gorm:"type:timestamp;index:index_created_id;priority:3" json:"created_at"`
+	CreatedAt time.Time `gorm:"type:timestamptz(3);index:index_created_id;priority:3" json:"created_at"`
 }
 
 func (u *Comment) BeforeCreate(tx *gorm.DB) (err error) {

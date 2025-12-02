@@ -23,7 +23,7 @@ func (h *HttpLikeHandler) CreateLike(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "invalid request")
 	}
 
-	ownerID, err := uuid.Parse(req.OwnerID)
+	authorID, err := uuid.Parse(req.OwnerID)
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "invalid id")
 	}
@@ -33,7 +33,7 @@ func (h *HttpLikeHandler) CreateLike(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "invalid id")
 	}
 
-	like := &entities.Like{OwnerID: ownerID, ParentID: parentID, ParentType: req.ParentType}
+	like := &entities.Like{AuthorID: authorID, ParentID: parentID, ParentType: req.ParentType}
 	if err := h.usecase.CreateLike(like); err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to create like")
 	}

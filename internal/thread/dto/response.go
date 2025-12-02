@@ -8,8 +8,9 @@ import (
 )
 
 type ThreadResponse struct {
-	ID    uuid.UUID `json:"id"`
-	Title string    `json:"title"`
+	ID       uuid.UUID `json:"id"`
+	Title    string    `json:"title"`
+	ImageUrl string    `json:"image_url"`
 
 	Posts []entities.Post `json:"posts"`
 

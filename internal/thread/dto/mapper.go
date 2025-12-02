@@ -7,6 +7,7 @@ func ToThreadResponse(thread *entities.Thread) *ThreadResponse {
 		ID:        thread.ID,
 		Title:     thread.Title,
 		Posts:     thread.Posts,
+		ImageUrl:  thread.ImageUrl,
 		CreatedAt: thread.CreatedAt,
 	}
 }

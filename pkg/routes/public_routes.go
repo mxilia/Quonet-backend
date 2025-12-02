@@ -20,6 +20,10 @@ import (
 	commentRepository "github.com/mxilia/Conflux-backend/internal/comment/repository"
 	commentUseCase "github.com/mxilia/Conflux-backend/internal/comment/usecase"
 
+	sessionHandler "github.com/mxilia/Conflux-backend/internal/session/handler/rest"
+	sessionRepository "github.com/mxilia/Conflux-backend/internal/session/repository"
+	sessionUseCase "github.com/mxilia/Conflux-backend/internal/session/usecase"
+
 	"github.com/mxilia/Conflux-backend/pkg/config"
 )
 
@@ -31,9 +35,14 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	threadUseCase := threadUseCase.NewThreadService(threadRepo)
 	threadHandler := threadHandler.NewHttpThreadHandler(threadUseCase)
 
+	sessionRepo := sessionRepository.NewGormSessionRepository(db)
+	sessionUseCase := sessionUseCase.NewSessionService(sessionRepo)
+
 	userRepo := userRepository.NewGormUserRepository(db)
 	userUseCase := userUseCase.NewUserService(userRepo)
-	userHandler := userHandler.NewHttpUserHandler(userUseCase, cfg)
+	userHandler := userHandler.NewHttpUserHandler(userUseCase, sessionUseCase, cfg)
+
+	sessionHandler := sessionHandler.NewHttpSessionHandler(sessionUseCase, userUseCase, cfg)
 
 	postRepo := postRepository.NewGormPostRepository(db)
 	postUseCase := postUseCase.NewPostService(postRepo)
@@ -48,6 +57,9 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	api := app.Group("/api/v2")
 
 	authGroup := api.Group("/auth")
+
+	authGroup.Get("/refresh", sessionHandler.RenewToken)
+	authGroup.Delete("/logout", sessionHandler.Logout)
 
 	googleAuthGroup := authGroup.Group("/google")
 
