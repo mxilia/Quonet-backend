@@ -43,7 +43,7 @@ func (h *HttpLikeHandler) CreateLike(c *fiber.Ctx) error {
 
 func (h *HttpLikeHandler) FindAllLikes(c *fiber.Ctx) error {
 	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "" {
+	if parentType != "comment" && parentType != "post" && parentType != "all" {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 
@@ -56,7 +56,7 @@ func (h *HttpLikeHandler) FindAllLikes(c *fiber.Ctx) error {
 
 func (h *HttpLikeHandler) FindLikesByOwnerID(c *fiber.Ctx) error {
 	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "" {
+	if parentType != "comment" && parentType != "post" && parentType != "all" {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 
@@ -75,7 +75,7 @@ func (h *HttpLikeHandler) FindLikesByOwnerID(c *fiber.Ctx) error {
 
 func (h *HttpLikeHandler) FindLikesByParentID(c *fiber.Ctx) error {
 	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "" {
+	if parentType != "comment" && parentType != "post" && parentType != "all" {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 
@@ -94,7 +94,7 @@ func (h *HttpLikeHandler) FindLikesByParentID(c *fiber.Ctx) error {
 
 func (h *HttpLikeHandler) FindLikeByID(c *fiber.Ctx) error {
 	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "" {
+	if parentType != "comment" && parentType != "post" && parentType != "all" {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 
@@ -112,7 +112,7 @@ func (h *HttpLikeHandler) FindLikeByID(c *fiber.Ctx) error {
 
 func (h *HttpLikeHandler) LikeCountByParentID(c *fiber.Ctx) error {
 	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "" {
+	if parentType != "comment" && parentType != "post" && parentType != "all" {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 
@@ -131,7 +131,7 @@ func (h *HttpLikeHandler) LikeCountByParentID(c *fiber.Ctx) error {
 
 func (h *HttpLikeHandler) IsParentLikedByMe(c *fiber.Ctx) error {
 	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "" {
+	if parentType != "comment" && parentType != "post" && parentType != "all" {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 
@@ -155,7 +155,7 @@ func (h *HttpLikeHandler) IsParentLikedByMe(c *fiber.Ctx) error {
 
 func (h *HttpLikeHandler) DeleteLike(c *fiber.Ctx) error {
 	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "" {
+	if parentType != "comment" && parentType != "post" && parentType != "all" {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 

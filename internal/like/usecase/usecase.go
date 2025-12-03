@@ -31,13 +31,13 @@ func NewLikeService(repo repository.LikeRepository, txManager transaction.Transa
 func calcUpdateCount(oldPositive bool, newPositive bool) (int64, string) {
 	switch {
 	case oldPositive && newPositive:
-		return -1, "delete"
+		return -1, ""
 	case oldPositive && !newPositive:
 		return -2, "create"
 	case !oldPositive && newPositive:
 		return 2, "create"
 	default:
-		return 1, "delete"
+		return 1, ""
 	}
 }
 
@@ -97,12 +97,11 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 			return fmt.Errorf("invalid parent type")
 		}
 
+		if err := s.repo.Delete(txCtx, like.ParentType, likedID); err != nil {
+			return err
+		}
 		if status == "create" {
 			if err := s.repo.Save(txCtx, like); err != nil {
-				return err
-			}
-		} else {
-			if err := s.repo.Delete(txCtx, like.ParentType, likedID); err != nil {
 				return err
 			}
 		}
