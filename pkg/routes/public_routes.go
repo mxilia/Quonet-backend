@@ -58,8 +58,8 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	authGroup := api.Group("/auth")
 
-	authGroup.Get("/refresh", sessionHandler.RenewToken)
-	authGroup.Delete("/logout", sessionHandler.Logout)
+	authGroup.Post("/refresh", sessionHandler.RenewToken)
+	authGroup.Post("/logout", sessionHandler.Logout)
 
 	googleAuthGroup := authGroup.Group("/google")
 
