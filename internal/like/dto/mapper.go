@@ -5,7 +5,7 @@ import "github.com/mxilia/Conflux-backend/internal/entities"
 func ToLikeResponse(like *entities.Like) *LikeResponse {
 	return &LikeResponse{
 		ID:         like.ID,
-		AuthorID:   like.AuthorID,
+		OwnerID:    like.OwnerID,
 		ParentID:   like.ParentID,
 		ParentType: like.ParentType,
 		IsPositive: like.IsPositive,

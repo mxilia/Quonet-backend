@@ -24,10 +24,11 @@ type UserResponse struct {
 }
 
 type LoginResponse struct {
-	Handler    string `json:"handler"`
-	Email      string `json:"email"`
-	ProfileUrl string `json:"profile_url"`
-	Role       string `json:"role"`
+	ID         uuid.UUID `json:"id"`
+	Handler    string    `json:"handler"`
+	Email      string    `json:"email"`
+	ProfileUrl string    `json:"profile_url"`
+	Role       string    `json:"role"`
 
 	AccessToken          string    `json:"access_token"`
 	AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`

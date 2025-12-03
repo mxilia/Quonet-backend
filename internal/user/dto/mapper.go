@@ -32,6 +32,7 @@ func ToUserResponseList(users []*entities.User) []*UserResponse {
 
 func ToLoginResponse(user *entities.User, accessToken string, acccessClaims *token.UserClaims) *LoginResponse {
 	return &LoginResponse{
+		ID:         user.ID,
 		Handler:    user.Handler,
 		Email:      user.Email,
 		ProfileUrl: user.ProfileUrl,

@@ -8,7 +8,7 @@ import (
 
 type Session struct {
 	ID           string    `gorm:"type:uuid;primaryKey" json:"id"`
-	UserEmail    string    `gorm:"type:varchar(255);uniqueIndex" json:"user_email"`
+	UserEmail    string    `gorm:"type:varchar(255)" json:"user_email"`
 	RefreshToken string    `gorm:"type:varchar(512)" json:"refresh_token"`
 	IsRevoked    bool      `json:"is_revoked"`
 	CreatedAt    time.Time `gorm:"type:timestamptz(3)" json:"created_at"`

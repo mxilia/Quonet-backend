@@ -9,7 +9,7 @@ import (
 
 type Like struct {
 	ID         uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	AuthorID   uuid.UUID `gorm:"type:uuid" json:"author_id"`
+	OwnerID    uuid.UUID `gorm:"type:uuid" json:"owner_id"`
 	ParentID   uuid.UUID `gorm:"type:uuid" json:"parent_id"`
 	ParentType string    `gorm:"type:VARCHAR(255)" json:"parent_type"` // either post or parent
 	IsPositive bool      `gorm:"type:bool" json:"is_positive"`

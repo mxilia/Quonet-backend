@@ -18,7 +18,7 @@ type User struct {
 
 	Posts    []Post    `gorm:"foreignKey:AuthorID;constraint:OnDelete:CASCADE" json:"posts"`
 	Comments []Comment `gorm:"foreignKey:AuthorID" json:"comments"`
-	Likes    []Like    `gorm:"foreignKey:AuthorID;constraint:OnDelete:CASCADE" json:"likes"`
+	Likes    []Like    `gorm:"foreignKey:OwnerID" json:"likes"`
 
 	CreatedAt time.Time `gorm:"timestamptz(3)" json:"created_at"`
 }

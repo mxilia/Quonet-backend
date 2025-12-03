@@ -11,6 +11,7 @@ func ToPostResponse(post *entities.Post) *PostResponse {
 		Content:      post.Content,
 		ThumbnailUrl: post.ThumbnailUrl,
 		IsPrivate:    post.IsPrivate,
+		LikeCount:    post.LikeCount,
 
 		Author:   post.Author,
 		Likes:    post.Likes,

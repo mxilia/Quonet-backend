@@ -17,6 +17,7 @@ type PostResponse struct {
 	Content      string    `json:"content"`
 	ThumbnailUrl string    `json:"thumbnail_url"`
 	IsPrivate    bool      `json:"is_private"`
+	LikeCount    int64     `json:"like_count"`
 
 	Author   entities.User      `json:"author"`
 	Likes    []entities.Like    `json:"like"`

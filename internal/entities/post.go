@@ -15,6 +15,7 @@ type Post struct {
 	Content      string    `gorm:"type:text" json:"content"`               // Need to validate
 	ThumbnailUrl string    `gorm:"type:varchar(512)" json:"thumbnail_url"` // Need to validate
 	IsPrivate    bool      `gorm:"default:false" json:"is_private"`
+	LikeCount    int64     `gorm:"default:0" json:"like_count"`
 
 	Author   User      `gorm:"foreignKey:AuthorID;constraint:OnDelete:CASCADE" json:"author"`
 	Likes    []Like    `gorm:"polymorphic:Parent;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"likes"`

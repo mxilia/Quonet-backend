@@ -8,9 +8,10 @@ import (
 )
 
 type CommentResponse struct {
-	ID       uuid.UUID `json:"id"`
-	AuthorID uuid.UUID `json:"author_id"`
-	Content  string    `json:"content"`
+	ID        uuid.UUID `json:"id"`
+	AuthorID  uuid.UUID `json:"author_id"`
+	Content   string    `json:"content"`
+	LikeCount int64     `json:"like_count"`
 
 	ParentID *uuid.UUID `json:"parent_id"`
 	RootID   uuid.UUID  `json:"root_id"`

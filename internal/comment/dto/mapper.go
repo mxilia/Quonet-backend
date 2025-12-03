@@ -7,9 +7,10 @@ import (
 
 func ToCommentResponse(comment *entities.Comment) *CommentResponse {
 	return &CommentResponse{
-		ID:       comment.ID,
-		AuthorID: comment.AuthorID,
-		Content:  comment.Content,
+		ID:        comment.ID,
+		AuthorID:  comment.AuthorID,
+		Content:   comment.Content,
+		LikeCount: comment.LikeCount,
 
 		ParentID: comment.ParentID,
 		RootID:   comment.RootID,

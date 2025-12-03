@@ -37,10 +37,10 @@ func setupDependencies(env string) (*gorm.DB, *config.Config, error) {
 	}
 
 	if env == "dev" {
-		db.Migrator().DropTable(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}, &entities.Comment{})
+		//db.Migrator().DropTable(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}, &entities.Comment{}, &entities.Session{})
 	}
 
-	if err := db.AutoMigrate(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}, &entities.Comment{}); err != nil {
+	if err := db.AutoMigrate(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}, &entities.Comment{}, &entities.Session{}); err != nil {
 		return nil, nil, err
 	}
 

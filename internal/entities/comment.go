@@ -8,9 +8,10 @@ import (
 )
 
 type Comment struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey;index:index_created_id;priority:4" json:"id"`
-	AuthorID uuid.UUID `gorm:"type:uuid" json:"author_id"`
-	Content  string    `gorm:"type:text" json:"content"` // Need to validate
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey;index:index_created_id;priority:4" json:"id"`
+	AuthorID  uuid.UUID `gorm:"type:uuid" json:"author_id"`
+	Content   string    `gorm:"type:text" json:"content"` // Need to validate
+	LikeCount int64     `gorm:"default:0" json:"like_count"`
 
 	ParentID *uuid.UUID `gorm:"type:uuid;index:index_created_id;priority:2" json:"parent_id"`
 	RootID   uuid.UUID  `gorm:"type:uuid;index:index_created_id;priority:1" json:"root_id"`

@@ -6,19 +6,20 @@ import (
 	commentHandler "github.com/mxilia/Conflux-backend/internal/comment/handler/rest"
 	commentRepository "github.com/mxilia/Conflux-backend/internal/comment/repository"
 	commentUseCase "github.com/mxilia/Conflux-backend/internal/comment/usecase"
+	"github.com/mxilia/Conflux-backend/internal/transaction"
 
 	likeHandler "github.com/mxilia/Conflux-backend/internal/like/handler/rest"
 	likeRepository "github.com/mxilia/Conflux-backend/internal/like/repository"
-
 	likeUseCase "github.com/mxilia/Conflux-backend/internal/like/usecase"
+
 	postHandler "github.com/mxilia/Conflux-backend/internal/post/handler/rest"
 	postRepository "github.com/mxilia/Conflux-backend/internal/post/repository"
-
 	postUseCase "github.com/mxilia/Conflux-backend/internal/post/usecase"
+
 	sessionHandler "github.com/mxilia/Conflux-backend/internal/session/handler/rest"
 	sessionRepository "github.com/mxilia/Conflux-backend/internal/session/repository"
-
 	sessionUseCase "github.com/mxilia/Conflux-backend/internal/session/usecase"
+
 	threadHandler "github.com/mxilia/Conflux-backend/internal/thread/handler/rest"
 	threadRepository "github.com/mxilia/Conflux-backend/internal/thread/repository"
 	threadUseCase "github.com/mxilia/Conflux-backend/internal/thread/usecase"
@@ -35,6 +36,8 @@ import (
 func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	/* === Dependencies Wiring === */
+
+	txManager := transaction.NewGormTxManager(db)
 
 	threadRepo := threadRepository.NewGormThreadRepository(db)
 	threadUseCase := threadUseCase.NewThreadService(threadRepo)
@@ -53,13 +56,13 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	postUseCase := postUseCase.NewPostService(postRepo)
 	postHandler := postHandler.NewHttpPostHandler(postUseCase)
 
-	likeRepo := likeRepository.NewGormLikeRepository(db)
-	likeUseCase := likeUseCase.NewLikeService(likeRepo)
-	likeHandler := likeHandler.NewHttpLikeHandler(likeUseCase)
-
 	commentRepo := commentRepository.NewGormCommentRepository(db)
 	commentUseCase := commentUseCase.NewCommentService(commentRepo)
 	commentHandler := commentHandler.NewHttpCommentHandler(commentUseCase)
+
+	likeRepo := likeRepository.NewGormLikeRepository(db)
+	likeUseCase := likeUseCase.NewLikeService(likeRepo, txManager, postUseCase, commentUseCase)
+	likeHandler := likeHandler.NewHttpLikeHandler(likeUseCase)
 
 	/* === Routes === */
 
@@ -69,7 +72,7 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	threadGroup := api.Group("/threads")
 
-	threadGroup.Post("/", threadHandler.CreateThread)
+	threadGroup.Post("/", middleware.RequireAdmin(), threadHandler.CreateThread)
 	threadGroup.Delete("/:id", middleware.RequireAdmin(), threadHandler.DeleteThread)
 
 	sessionGroup := api.Group("/sessions")
@@ -98,13 +101,13 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	likeGroup := api.Group("/likes")
 
 	likeGroup.Post("/", likeHandler.CreateLike)
-	likeGroup.Get("/", middleware.RequireUser(), likeHandler.FindAllLikes)
-	likeGroup.Get("/owner/:id", middleware.RequireUser(), likeHandler.FindLikesByOwnerID)
-	likeGroup.Get("/parent/:id", middleware.RequireUser(), likeHandler.FindLikesByParentID)
-	likeGroup.Get("/id/:id", middleware.RequireUser(), likeHandler.FindLikeByID)
+	likeGroup.Get("/:parent_type", middleware.RequireUser(), likeHandler.FindAllLikes)
+	likeGroup.Get("/owner/:id/:parent_type", middleware.RequireUser(), likeHandler.FindLikesByOwnerID)
+	likeGroup.Get("/parent/:id/:parent_type", middleware.RequireUser(), likeHandler.FindLikesByParentID)
+	likeGroup.Get("/id/:id/:parent_type", middleware.RequireUser(), likeHandler.FindLikeByID)
 	likeGroup.Get("/count/:parent_type/:id", middleware.RequireUser(), likeHandler.LikeCountByParentID)
 	likeGroup.Get("/is_liked/:parent_type/:parent_id/:my_id", middleware.RequireUser(), likeHandler.IsParentLikedByMe)
-	likeGroup.Delete("/:id", middleware.RequireUser(), likeHandler.DeleteLike)
+	likeGroup.Delete("/:id/:parent_type", middleware.RequireUser(), likeHandler.DeleteLike)
 
 	commentGroup := api.Group("/comments")
 
