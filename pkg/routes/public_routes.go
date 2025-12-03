@@ -4,27 +4,27 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	threadHandler "github.com/mxilia/Conflux-backend/internal/thread/handler/rest"
-	threadRepository "github.com/mxilia/Conflux-backend/internal/thread/repository"
-	threadUseCase "github.com/mxilia/Conflux-backend/internal/thread/usecase"
+	threadHandler "github.com/mxilia/Quonet-backend/internal/thread/handler/rest"
+	threadRepository "github.com/mxilia/Quonet-backend/internal/thread/repository"
+	threadUseCase "github.com/mxilia/Quonet-backend/internal/thread/usecase"
 
-	userHandler "github.com/mxilia/Conflux-backend/internal/user/handler/rest"
-	userRepository "github.com/mxilia/Conflux-backend/internal/user/repository"
-	userUseCase "github.com/mxilia/Conflux-backend/internal/user/usecase"
+	userHandler "github.com/mxilia/Quonet-backend/internal/user/handler/rest"
+	userRepository "github.com/mxilia/Quonet-backend/internal/user/repository"
+	userUseCase "github.com/mxilia/Quonet-backend/internal/user/usecase"
 
-	postHandler "github.com/mxilia/Conflux-backend/internal/post/handler/rest"
-	postRepository "github.com/mxilia/Conflux-backend/internal/post/repository"
-	postUseCase "github.com/mxilia/Conflux-backend/internal/post/usecase"
+	postHandler "github.com/mxilia/Quonet-backend/internal/post/handler/rest"
+	postRepository "github.com/mxilia/Quonet-backend/internal/post/repository"
+	postUseCase "github.com/mxilia/Quonet-backend/internal/post/usecase"
 
-	commentHandler "github.com/mxilia/Conflux-backend/internal/comment/handler/rest"
-	commentRepository "github.com/mxilia/Conflux-backend/internal/comment/repository"
-	commentUseCase "github.com/mxilia/Conflux-backend/internal/comment/usecase"
+	commentHandler "github.com/mxilia/Quonet-backend/internal/comment/handler/rest"
+	commentRepository "github.com/mxilia/Quonet-backend/internal/comment/repository"
+	commentUseCase "github.com/mxilia/Quonet-backend/internal/comment/usecase"
 
-	sessionHandler "github.com/mxilia/Conflux-backend/internal/session/handler/rest"
-	sessionRepository "github.com/mxilia/Conflux-backend/internal/session/repository"
-	sessionUseCase "github.com/mxilia/Conflux-backend/internal/session/usecase"
+	sessionHandler "github.com/mxilia/Quonet-backend/internal/session/handler/rest"
+	sessionRepository "github.com/mxilia/Quonet-backend/internal/session/repository"
+	sessionUseCase "github.com/mxilia/Quonet-backend/internal/session/usecase"
 
-	"github.com/mxilia/Conflux-backend/pkg/config"
+	"github.com/mxilia/Quonet-backend/pkg/config"
 )
 
 func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {

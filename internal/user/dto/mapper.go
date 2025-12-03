@@ -1,8 +1,8 @@
 package dto
 
 import (
-	"github.com/mxilia/Conflux-backend/internal/entities"
-	"github.com/mxilia/Conflux-backend/pkg/token"
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/pkg/token"
 )
 
 func ToUserResponse(user *entities.User) *UserResponse {

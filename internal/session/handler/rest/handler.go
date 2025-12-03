@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/mxilia/Conflux-backend/internal/session/dto"
-	"github.com/mxilia/Conflux-backend/internal/session/usecase"
-	userUseCase "github.com/mxilia/Conflux-backend/internal/user/usecase"
-	appError "github.com/mxilia/Conflux-backend/pkg/apperror"
-	"github.com/mxilia/Conflux-backend/pkg/config"
-	"github.com/mxilia/Conflux-backend/pkg/responses"
-	"github.com/mxilia/Conflux-backend/pkg/token"
+	"github.com/mxilia/Quonet-backend/internal/session/dto"
+	"github.com/mxilia/Quonet-backend/internal/session/usecase"
+	userUseCase "github.com/mxilia/Quonet-backend/internal/user/usecase"
+	appError "github.com/mxilia/Quonet-backend/pkg/apperror"
+	"github.com/mxilia/Quonet-backend/pkg/config"
+	"github.com/mxilia/Quonet-backend/pkg/responses"
+	"github.com/mxilia/Quonet-backend/pkg/token"
 )
 
 type HttpSessionHandler struct {

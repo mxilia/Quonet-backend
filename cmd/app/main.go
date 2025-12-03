@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mxilia/Conflux-backend/internal/app"
+	"github.com/mxilia/Quonet-backend/internal/app"
 )
 
 func main() {

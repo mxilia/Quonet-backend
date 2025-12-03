@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	commentUseCase "github.com/mxilia/Conflux-backend/internal/comment/usecase"
-	"github.com/mxilia/Conflux-backend/internal/entities"
-	"github.com/mxilia/Conflux-backend/internal/like/repository"
-	postUseCase "github.com/mxilia/Conflux-backend/internal/post/usecase"
-	"github.com/mxilia/Conflux-backend/internal/transaction"
+	commentUseCase "github.com/mxilia/Quonet-backend/internal/comment/usecase"
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/like/repository"
+	postUseCase "github.com/mxilia/Quonet-backend/internal/post/usecase"
+	"github.com/mxilia/Quonet-backend/internal/transaction"
 )
 
 type LikeService struct {

@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"github.com/gofiber/fiber/v2"
-	appError "github.com/mxilia/Conflux-backend/pkg/apperror"
-	"github.com/mxilia/Conflux-backend/pkg/config"
-	"github.com/mxilia/Conflux-backend/pkg/responses"
-	"github.com/mxilia/Conflux-backend/pkg/token"
+	appError "github.com/mxilia/Quonet-backend/pkg/apperror"
+	"github.com/mxilia/Quonet-backend/pkg/config"
+	"github.com/mxilia/Quonet-backend/pkg/responses"
+	"github.com/mxilia/Quonet-backend/pkg/token"
 )
 
 func JWTMiddleware(cfg *config.Config) fiber.Handler {

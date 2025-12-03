@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/entities"
 )
 
 type LikeUseCase interface {

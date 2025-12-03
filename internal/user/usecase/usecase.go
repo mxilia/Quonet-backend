@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/internal/entities"
-	"github.com/mxilia/Conflux-backend/internal/user/repository"
-	appError "github.com/mxilia/Conflux-backend/pkg/apperror"
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/user/repository"
+	appError "github.com/mxilia/Quonet-backend/pkg/apperror"
 )
 
 type UserService struct {

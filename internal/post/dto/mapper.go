@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/mxilia/Conflux-backend/internal/entities"
+import "github.com/mxilia/Quonet-backend/internal/entities"
 
 func ToPostResponse(post *entities.Post) *PostResponse {
 	return &PostResponse{

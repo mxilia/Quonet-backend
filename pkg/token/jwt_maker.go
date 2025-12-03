@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/pkg/config"
+	"github.com/mxilia/Quonet-backend/pkg/config"
 )
 
 type JWTMaker struct {

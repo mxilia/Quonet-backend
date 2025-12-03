@@ -2,7 +2,7 @@ package dto
 
 import (
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/entities"
 )
 
 func ToCommentResponse(comment *entities.Comment) *CommentResponse {

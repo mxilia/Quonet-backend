@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/entities"
 )
 
 type ThreadUseCase interface {

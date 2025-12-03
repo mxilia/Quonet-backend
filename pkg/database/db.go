@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/mxilia/Conflux-backend/pkg/config"
+	"github.com/mxilia/Quonet-backend/pkg/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

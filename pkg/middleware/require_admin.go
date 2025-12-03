@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"github.com/gofiber/fiber/v2"
-	appError "github.com/mxilia/Conflux-backend/pkg/apperror"
-	"github.com/mxilia/Conflux-backend/pkg/responses"
+	appError "github.com/mxilia/Quonet-backend/pkg/apperror"
+	"github.com/mxilia/Quonet-backend/pkg/responses"
 )
 
 func RequireAdmin() fiber.Handler {

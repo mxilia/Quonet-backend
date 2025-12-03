@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/mxilia/Conflux-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/entities"
 	"gorm.io/gorm"
 )
 

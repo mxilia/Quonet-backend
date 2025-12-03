@@ -1,6 +1,6 @@
 package usecase
 
-import "github.com/mxilia/Conflux-backend/internal/entities"
+import "github.com/mxilia/Quonet-backend/internal/entities"
 
 type SessionUseCase interface {
 	CreateSession(session *entities.Session) error

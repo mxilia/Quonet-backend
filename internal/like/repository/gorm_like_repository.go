@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/internal/entities"
-	"github.com/mxilia/Conflux-backend/internal/transaction"
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/transaction"
 	"gorm.io/gorm"
 )
 

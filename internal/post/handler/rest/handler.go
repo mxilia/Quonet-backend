@@ -3,11 +3,11 @@ package rest
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/internal/entities"
-	"github.com/mxilia/Conflux-backend/internal/post/dto"
-	"github.com/mxilia/Conflux-backend/internal/post/usecase"
-	appError "github.com/mxilia/Conflux-backend/pkg/apperror"
-	"github.com/mxilia/Conflux-backend/pkg/responses"
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/post/dto"
+	"github.com/mxilia/Quonet-backend/internal/post/usecase"
+	appError "github.com/mxilia/Quonet-backend/pkg/apperror"
+	"github.com/mxilia/Quonet-backend/pkg/responses"
 )
 
 type HttpPostHandler struct {

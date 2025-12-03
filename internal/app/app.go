@@ -4,11 +4,11 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/mxilia/Conflux-backend/internal/entities"
-	"github.com/mxilia/Conflux-backend/pkg/config"
-	"github.com/mxilia/Conflux-backend/pkg/database"
-	"github.com/mxilia/Conflux-backend/pkg/middleware"
-	"github.com/mxilia/Conflux-backend/pkg/routes"
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/pkg/config"
+	"github.com/mxilia/Quonet-backend/pkg/database"
+	"github.com/mxilia/Quonet-backend/pkg/middleware"
+	"github.com/mxilia/Quonet-backend/pkg/routes"
 	"gorm.io/gorm"
 )
 

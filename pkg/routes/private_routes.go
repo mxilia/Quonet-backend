@@ -3,33 +3,33 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 
-	commentHandler "github.com/mxilia/Conflux-backend/internal/comment/handler/rest"
-	commentRepository "github.com/mxilia/Conflux-backend/internal/comment/repository"
-	commentUseCase "github.com/mxilia/Conflux-backend/internal/comment/usecase"
-	"github.com/mxilia/Conflux-backend/internal/transaction"
+	commentHandler "github.com/mxilia/Quonet-backend/internal/comment/handler/rest"
+	commentRepository "github.com/mxilia/Quonet-backend/internal/comment/repository"
+	commentUseCase "github.com/mxilia/Quonet-backend/internal/comment/usecase"
+	"github.com/mxilia/Quonet-backend/internal/transaction"
 
-	likeHandler "github.com/mxilia/Conflux-backend/internal/like/handler/rest"
-	likeRepository "github.com/mxilia/Conflux-backend/internal/like/repository"
-	likeUseCase "github.com/mxilia/Conflux-backend/internal/like/usecase"
+	likeHandler "github.com/mxilia/Quonet-backend/internal/like/handler/rest"
+	likeRepository "github.com/mxilia/Quonet-backend/internal/like/repository"
+	likeUseCase "github.com/mxilia/Quonet-backend/internal/like/usecase"
 
-	postHandler "github.com/mxilia/Conflux-backend/internal/post/handler/rest"
-	postRepository "github.com/mxilia/Conflux-backend/internal/post/repository"
-	postUseCase "github.com/mxilia/Conflux-backend/internal/post/usecase"
+	postHandler "github.com/mxilia/Quonet-backend/internal/post/handler/rest"
+	postRepository "github.com/mxilia/Quonet-backend/internal/post/repository"
+	postUseCase "github.com/mxilia/Quonet-backend/internal/post/usecase"
 
-	sessionHandler "github.com/mxilia/Conflux-backend/internal/session/handler/rest"
-	sessionRepository "github.com/mxilia/Conflux-backend/internal/session/repository"
-	sessionUseCase "github.com/mxilia/Conflux-backend/internal/session/usecase"
+	sessionHandler "github.com/mxilia/Quonet-backend/internal/session/handler/rest"
+	sessionRepository "github.com/mxilia/Quonet-backend/internal/session/repository"
+	sessionUseCase "github.com/mxilia/Quonet-backend/internal/session/usecase"
 
-	threadHandler "github.com/mxilia/Conflux-backend/internal/thread/handler/rest"
-	threadRepository "github.com/mxilia/Conflux-backend/internal/thread/repository"
-	threadUseCase "github.com/mxilia/Conflux-backend/internal/thread/usecase"
+	threadHandler "github.com/mxilia/Quonet-backend/internal/thread/handler/rest"
+	threadRepository "github.com/mxilia/Quonet-backend/internal/thread/repository"
+	threadUseCase "github.com/mxilia/Quonet-backend/internal/thread/usecase"
 
-	userHandler "github.com/mxilia/Conflux-backend/internal/user/handler/rest"
-	userRepository "github.com/mxilia/Conflux-backend/internal/user/repository"
-	userUseCase "github.com/mxilia/Conflux-backend/internal/user/usecase"
+	userHandler "github.com/mxilia/Quonet-backend/internal/user/handler/rest"
+	userRepository "github.com/mxilia/Quonet-backend/internal/user/repository"
+	userUseCase "github.com/mxilia/Quonet-backend/internal/user/usecase"
 
-	"github.com/mxilia/Conflux-backend/pkg/config"
-	"github.com/mxilia/Conflux-backend/pkg/middleware"
+	"github.com/mxilia/Quonet-backend/pkg/config"
+	"github.com/mxilia/Quonet-backend/pkg/middleware"
 	"gorm.io/gorm"
 )
 

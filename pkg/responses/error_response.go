@@ -2,7 +2,7 @@ package responses
 
 import (
 	"github.com/gofiber/fiber/v2"
-	appError "github.com/mxilia/Conflux-backend/pkg/apperror"
+	appError "github.com/mxilia/Quonet-backend/pkg/apperror"
 )
 
 type ErrorResponse struct {

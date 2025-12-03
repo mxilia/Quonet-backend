@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/mxilia/Conflux-backend/internal/entities"
+import "github.com/mxilia/Quonet-backend/internal/entities"
 
 func ToThreadResponse(thread *entities.Thread) *ThreadResponse {
 	return &ThreadResponse{

@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"github.com/mxilia/Conflux-backend/internal/entities"
-	"github.com/mxilia/Conflux-backend/internal/session/repository"
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/session/repository"
 )
 
 type SessionService struct {

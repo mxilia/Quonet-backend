@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/mxilia/Conflux-backend/pkg/token"
+import "github.com/mxilia/Quonet-backend/pkg/token"
 
 func ToRenewAccessTokenResponse(accessToken string, accessClaims *token.UserClaims) *RenewAccessTokenResponse {
 	return &RenewAccessTokenResponse{

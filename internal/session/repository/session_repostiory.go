@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/mxilia/Conflux-backend/internal/entities"
+import "github.com/mxilia/Quonet-backend/internal/entities"
 
 type SessionRepository interface {
 	Save(session *entities.Session) error

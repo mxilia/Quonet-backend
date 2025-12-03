@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/internal/entities"
-	"github.com/mxilia/Conflux-backend/internal/post/repository"
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/post/repository"
 )
 
 type PostService struct {

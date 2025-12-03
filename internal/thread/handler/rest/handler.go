@@ -3,10 +3,10 @@ package rest
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/mxilia/Conflux-backend/internal/entities"
-	"github.com/mxilia/Conflux-backend/internal/thread/dto"
-	"github.com/mxilia/Conflux-backend/internal/thread/usecase"
-	"github.com/mxilia/Conflux-backend/pkg/responses"
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/thread/dto"
+	"github.com/mxilia/Quonet-backend/internal/thread/usecase"
+	"github.com/mxilia/Quonet-backend/pkg/responses"
 )
 
 type HttpThreadHandler struct {
