@@ -17,6 +17,10 @@ func JWTMiddleware(cfg *config.Config) fiber.Handler {
 			return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "missing token")
 		}
 
+		if len("Bearer ") > len(auth) {
+			return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "invalid token")
+		}
+
 		claims, err := tokenMaker.VerifyToken(auth[len("Bearer "):])
 		if err != nil {
 			return responses.ErrorWithMessage(c, appError.ErrUnauthorized, err.Error())

@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -105,11 +106,6 @@ func (h *HttpUserHandler) GoogleCallBack(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "failed to login via google")
 	}
 
-	accessToken, accessClaims, err := h.tokenMaker.CreateToken(user.ID, user.Email, user.Role, 10*time.Minute)
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInternalServer, "failed to create token")
-	}
-
 	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(user.ID, user.Email, user.Role, 30*24*time.Hour)
 	if err != nil {
 		return responses.ErrorWithMessage(c, appError.ErrInternalServer, "failed to create token")
@@ -133,6 +129,8 @@ func (h *HttpUserHandler) GoogleCallBack(c *fiber.Ctx) error {
 		Secure:   false,
 	})
 
+	fmt.Println(h.cfg.Env, h.cfg.Domain)
+
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    refreshToken,
@@ -140,10 +138,13 @@ func (h *HttpUserHandler) GoogleCallBack(c *fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   h.cfg.Env == "production",
 		SameSite: "Lax",
-		Domain:   h.cfg.Domain,
+		/*
+			Domain:   h.cfg.Domain,
+			Path:     "/",
+		*/
 	})
 
-	return c.JSON(dto.ToLoginResponse(user, accessToken, accessClaims))
+	return c.Redirect(h.cfg.FRONTEND_OAUTH_REDIRECT_URL, fiber.StatusSeeOther)
 }
 
 func (h *HttpUserHandler) FindAllUsers(c *fiber.Ctx) error {

@@ -43,21 +43,21 @@ func (h *HttpSessionHandler) RenewToken(c *fiber.Ctx) error {
 	claims, err := h.tokenMaker.VerifyToken(tokenStr)
 	if err != nil {
 		removeToken(c)
-		return responses.Error(c, appError.ErrUnauthorized)
+		return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "failed to parse "+tokenStr)
 	}
 
 	session, err := h.usecase.FindSessionByID(claims.RegisteredClaims.ID)
 	if err != nil {
 		removeToken(c)
-		return responses.Error(c, appError.ErrUnauthorized)
+		return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "failed to get session")
 	}
 	if session.IsRevoked {
 		removeToken(c)
-		return responses.Error(c, appError.ErrUnauthorized)
+		return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "session is revoked")
 	}
 	if session.UserEmail != claims.Email {
 		removeToken(c)
-		return responses.Error(c, appError.ErrUnauthorized)
+		return responses.ErrorWithMessage(c, appError.ErrUnauthorized, "invalid email")
 	}
 
 	user, err := h.userUseCase.FindUserByEmail(claims.Email)

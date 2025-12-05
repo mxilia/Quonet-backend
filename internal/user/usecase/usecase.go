@@ -7,6 +7,7 @@ import (
 	"github.com/mxilia/Quonet-backend/internal/entities"
 	"github.com/mxilia/Quonet-backend/internal/user/repository"
 	appError "github.com/mxilia/Quonet-backend/pkg/apperror"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -70,6 +71,16 @@ func (s *UserService) FindUserByEmail(email string) (*entities.User, error) {
 }
 
 func (s *UserService) PatchUser(id uuid.UUID, user *entities.User) error {
+	if user.Handler != "" {
+		registeredUser, err := s.FindUserByHandler(user.Handler)
+		if err != nil {
+			return err
+		}
+		if registeredUser != nil {
+			return gorm.ErrDuplicatedKey
+		}
+	}
+
 	if err := s.repo.Patch(id, user); err != nil {
 		return err
 	}
