@@ -7,10 +7,7 @@ import (
 
 type CommentUseCase interface {
 	CreateComment(comment *entities.Comment) error
-	FindAllComments() ([]*entities.Comment, error)
-	FindCommentsByAuthorID(id uuid.UUID) ([]*entities.Comment, error)
-	FindCommentsByParentID(id uuid.UUID) ([]*entities.Comment, error)
-	FindCommentsByRootID(id uuid.UUID) ([]*entities.Comment, error)
+	FindComments(authorID uuid.UUID, parentID uuid.UUID, rootID uuid.UUID, page int, limit int) ([]*entities.Comment, int64, error)
 	FindCommentByID(id uuid.UUID) (*entities.Comment, error)
 	PatchComment(id uuid.UUID, comment *entities.Comment) error
 	DeleteComment(id uuid.UUID) error

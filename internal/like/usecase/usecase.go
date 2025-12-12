@@ -42,7 +42,8 @@ func calcUpdateCount(oldPositive bool, newPositive bool) (int64, string) {
 }
 
 func getUpdateLikeCount(s *LikeService, like *entities.Like) (int64, string, uuid.UUID, error) {
-	liked, err := s.FindLikeByParentIDAndOwnerID(like.ParentType, like.ParentID, like.OwnerID)
+	likeds, _, err := s.FindLikes(like.ParentType, like.ParentID, like.OwnerID, 0, 1)
+	liked := likeds[0]
 	if err != nil {
 		return -1, "", uuid.Nil, err
 	}
@@ -97,7 +98,7 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 			return fmt.Errorf("invalid parent type")
 		}
 
-		if err := s.repo.Delete(txCtx, like.ParentType, likedID); err != nil {
+		if err := s.repo.Delete(txCtx, likedID); err != nil {
 			return err
 		}
 		if status == "create" {
@@ -109,64 +110,43 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 	})
 }
 
-func (s *LikeService) FindAllLikes(parentType string) ([]*entities.Like, error) {
-	likes, err := s.repo.FindAll(parentType)
-	if err != nil {
-		return nil, err
+func (s *LikeService) FindLikes(parentType string, ownerID uuid.UUID, parentID uuid.UUID, page int, limit int) ([]*entities.Like, int64, error) {
+	if page < 1 {
+		page = 1
 	}
-	return likes, nil
+
+	offset := (page - 1) * limit
+
+	likes, err := s.repo.Find(parentType, ownerID, parentID, offset, limit)
+	if err != nil {
+		return nil, -1, err
+	}
+
+	totalLikes, err := s.repo.Count(parentType, ownerID, parentID)
+	if err != nil {
+		return nil, -1, err
+	}
+	return likes, totalLikes, nil
 }
 
-func (s *LikeService) FindLikesByOwnerID(parentType string, id uuid.UUID) ([]*entities.Like, error) {
-	likes, err := s.repo.FindByOwnerID(parentType, id)
-	if err != nil {
-		return nil, err
-	}
-	return likes, nil
-}
-
-func (s *LikeService) FindLikesByParentID(parentType string, id uuid.UUID) ([]*entities.Like, error) {
-	likes, err := s.repo.FindByParentID(parentType, id)
-	if err != nil {
-		return nil, err
-	}
-	return likes, nil
-}
-
-func (s *LikeService) FindLikeByParentIDAndOwnerID(parentType string, parentID uuid.UUID, ownerID uuid.UUID) (*entities.Like, error) {
-	like, err := s.repo.FindByParentIDAndOwnerID(parentType, parentID, ownerID)
+func (s *LikeService) FindLikeByID(id uuid.UUID) (*entities.Like, error) {
+	like, err := s.repo.FindByID(id)
 	if err != nil {
 		return nil, err
 	}
 	return like, nil
 }
 
-func (s *LikeService) FindLikeByID(parentType string, id uuid.UUID) (*entities.Like, error) {
-	like, err := s.repo.FindByID(parentType, id)
-	if err != nil {
-		return nil, err
-	}
-	return like, nil
-}
-
-func (s *LikeService) LikeCountByParentID(parentType string, id uuid.UUID) (int64, error) {
-	count, err := s.repo.CountByParentID(parentType, id)
+func (s *LikeService) Count(parentType string, ownerID uuid.UUID, parentID uuid.UUID) (int64, error) {
+	count, err := s.repo.Count(parentType, ownerID, parentID)
 	if err != nil {
 		return -1, err
 	}
 	return count, nil
 }
 
-func (s *LikeService) IsParentLikedByMe(parentType string, parentID uuid.UUID, ownerID uuid.UUID) (bool, error) {
-	isLiked, err := s.repo.IsParentLikedByMe(parentType, parentID, ownerID)
-	if err != nil {
-		return false, err
-	}
-	return isLiked, nil
-}
-
-func (s *LikeService) DeleteLike(parentType string, id uuid.UUID) error {
-	if err := s.repo.Delete(context.TODO(), parentType, id); err != nil {
+func (s *LikeService) DeleteLike(id uuid.UUID) error {
+	if err := s.repo.Delete(context.TODO(), id); err != nil {
 		return err
 	}
 	return nil

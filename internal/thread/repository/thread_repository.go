@@ -7,7 +7,8 @@ import (
 
 type ThreadRepository interface {
 	Save(thread *entities.Thread) error
-	FindAll() ([]*entities.Thread, error)
+	FindAll(offset int, limit int) ([]*entities.Thread, error)
 	FindByID(id uuid.UUID) (*entities.Thread, error)
+	Count() (int64, error)
 	Delete(id uuid.UUID) error
 }

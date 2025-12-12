@@ -21,9 +21,9 @@ func (r *GormThreadRepository) Save(thread *entities.Thread) error {
 	return nil
 }
 
-func (r *GormThreadRepository) FindAll() ([]*entities.Thread, error) {
+func (r *GormThreadRepository) FindAll(offset int, limit int) ([]*entities.Thread, error) {
 	var threadsValue []entities.Thread
-	if err := r.db.Find(&threadsValue).Error; err != nil {
+	if err := r.db.Limit(limit).Offset(offset).Find(&threadsValue).Error; err != nil {
 		return nil, err
 	}
 
@@ -40,6 +40,14 @@ func (r *GormThreadRepository) FindByID(id uuid.UUID) (*entities.Thread, error) 
 		return nil, err
 	}
 	return &thread, nil
+}
+
+func (r *GormThreadRepository) Count() (int64, error) {
+	var count int64
+	if err := r.db.Model(&entities.Thread{}).Count(&count).Error; err != nil {
+		return -1, err
+	}
+	return count, nil
 }
 
 func (r *GormThreadRepository) Delete(id uuid.UUID) error {

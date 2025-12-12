@@ -9,10 +9,10 @@ import (
 
 type Thread struct {
 	ID       uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Title    string    `gorm:"type:varchar(255);unique" json:"title"` // Need to validate
+	Title    string    `gorm:"type:varchar(255)" json:"title"` // Need to validate
 	ImageUrl string    `gorm:"type:varchar(255)" json:"image_url"`
 
-	Posts []Post `gorm:"foreignKey:ThreadID" json:"posts"`
+	Posts []Post `gorm:"foreignKey:ThreadID;constraint:OnDelete:CASCADE;" json:"posts"`
 
 	CreatedAt time.Time `gorm:"type:timestamptz(3)" json:"created_at"`
 }

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/entities"
 	"gorm.io/gorm"
 )
@@ -21,8 +22,13 @@ func (r *GormSessionRepository) Save(session *entities.Session) error {
 }
 
 func (r *GormSessionRepository) FindByID(id string) (*entities.Session, error) {
+	sessionID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
+
 	var session entities.Session
-	if err := r.db.First(&session, id).Error; err != nil {
+	if err := r.db.First(&session, sessionID).Error; err != nil {
 		return nil, err
 	}
 	return &session, nil
@@ -41,7 +47,12 @@ func (r *GormSessionRepository) Revoke(email string) error {
 }
 
 func (r *GormSessionRepository) Delete(id string) error {
-	result := r.db.Delete(&entities.Session{}, id)
+	sessionID, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+
+	result := r.db.Delete(&entities.Session{}, sessionID)
 	if result.Error != nil {
 		return result.Error
 	}

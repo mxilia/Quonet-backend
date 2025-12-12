@@ -21,36 +21,23 @@ func (s *CommentService) CreateComment(comment *entities.Comment) error {
 	return nil
 }
 
-func (s *CommentService) FindAllComments() ([]*entities.Comment, error) {
-	comments, err := s.repo.FindAll()
-	if err != nil {
-		return nil, err
+func (s *CommentService) FindComments(authorID uuid.UUID, parentID uuid.UUID, rootID uuid.UUID, page int, limit int) ([]*entities.Comment, int64, error) {
+	if page < 1 {
+		page = 1
 	}
-	return comments, nil
-}
 
-func (s *CommentService) FindCommentsByAuthorID(id uuid.UUID) ([]*entities.Comment, error) {
-	comments, err := s.repo.FindByAuthorID(id)
-	if err != nil {
-		return nil, err
-	}
-	return comments, nil
-}
+	offset := (page - 1) * limit
 
-func (s *CommentService) FindCommentsByParentID(id uuid.UUID) ([]*entities.Comment, error) {
-	comments, err := s.repo.FindByParentID(id)
+	comments, err := s.repo.Find(authorID, parentID, rootID, offset, limit)
 	if err != nil {
-		return nil, err
+		return nil, -1, err
 	}
-	return comments, nil
-}
 
-func (s *CommentService) FindCommentsByRootID(id uuid.UUID) ([]*entities.Comment, error) {
-	comments, err := s.repo.FindByRootID(id)
+	totalComments, err := s.repo.Count()
 	if err != nil {
-		return nil, err
+		return nil, -1, err
 	}
-	return comments, nil
+	return comments, totalComments, nil
 }
 
 func (s *CommentService) FindCommentByID(id uuid.UUID) (*entities.Comment, error) {

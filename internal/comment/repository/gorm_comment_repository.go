@@ -21,48 +21,22 @@ func (r *GormCommentRepository) Save(comment *entities.Comment) error {
 	return nil
 }
 
-func (r *GormCommentRepository) FindAll() ([]*entities.Comment, error) {
+func (r *GormCommentRepository) Find(authorID uuid.UUID, parentID uuid.UUID, rootID uuid.UUID, offset int, limit int) ([]*entities.Comment, error) {
+	query := r.db.Model(&entities.Comment{})
+	if authorID != uuid.Nil {
+		query = query.Where("author_id = ?", authorID)
+	}
+
+	if parentID != uuid.Nil {
+		query = query.Where("parent_id = ?", parentID)
+	}
+
+	if rootID != uuid.Nil {
+		query = query.Where("root_id = ?", parentID)
+	}
+
 	var commentsValue []entities.Comment
-	if err := r.db.Find(&commentsValue).Error; err != nil {
-		return nil, err
-	}
-
-	comments := make([]*entities.Comment, len(commentsValue))
-	for i := range commentsValue {
-		comments[i] = &commentsValue[i]
-	}
-	return comments, nil
-}
-
-func (r *GormCommentRepository) FindByAuthorID(id uuid.UUID) ([]*entities.Comment, error) {
-	var commentsValue []entities.Comment
-	if err := r.db.Where("author_id = ?", id).Find(&commentsValue).Error; err != nil {
-		return nil, err
-	}
-
-	comments := make([]*entities.Comment, len(commentsValue))
-	for i := range commentsValue {
-		comments[i] = &commentsValue[i]
-	}
-	return comments, nil
-}
-
-func (r *GormCommentRepository) FindByParentID(id uuid.UUID) ([]*entities.Comment, error) {
-	var commentsValue []entities.Comment
-	if err := r.db.Where("parent_id = ?", id).Find(&commentsValue).Error; err != nil {
-		return nil, err
-	}
-
-	comments := make([]*entities.Comment, len(commentsValue))
-	for i := range commentsValue {
-		comments[i] = &commentsValue[i]
-	}
-	return comments, nil
-}
-
-func (r *GormCommentRepository) FindByRootID(id uuid.UUID) ([]*entities.Comment, error) {
-	var commentsValue []entities.Comment
-	if err := r.db.Where("root_id = ?", id).Find(&commentsValue).Error; err != nil {
+	if err := query.Limit(limit).Offset(offset).Find(&commentsValue).Error; err != nil {
 		return nil, err
 	}
 
@@ -79,6 +53,14 @@ func (r *GormCommentRepository) FindByID(id uuid.UUID) (*entities.Comment, error
 		return nil, err
 	}
 	return &comment, nil
+}
+
+func (r *GormCommentRepository) Count() (int64, error) {
+	var count int64
+	if err := r.db.Model(&entities.Comment{}).Count(&count).Error; err != nil {
+		return -1, err
+	}
+	return count, nil
 }
 
 func (r *GormCommentRepository) Patch(id uuid.UUID, comment *entities.Comment) error {

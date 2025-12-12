@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"math"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/comment/dto"
@@ -15,6 +17,28 @@ type HttpCommentHandler struct {
 
 func NewHttpCommentHandler(usecase usecase.CommentUseCase) *HttpCommentHandler {
 	return &HttpCommentHandler{usecase: usecase}
+}
+
+func checkCommentForbidAction(c *fiber.Ctx, h *HttpCommentHandler, commentID uuid.UUID) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return appError.ErrUnauthorized
+	}
+
+	authorID, err := uuid.Parse(userID)
+	if err != nil {
+		return appError.ErrUnauthorized
+	}
+
+	existedComment, err := h.usecase.FindCommentByID(commentID)
+	if err != nil {
+		return err
+	}
+
+	if c.Locals("role").(string) == "member" && existedComment.AuthorID != authorID {
+		return appError.ErrForbidden
+	}
+	return nil
 }
 
 func (h *HttpCommentHandler) CreateComment(c *fiber.Ctx) error {
@@ -34,51 +58,55 @@ func (h *HttpCommentHandler) CreateComment(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(dto.ToCommentResponse(comment))
 }
 
-func (h *HttpCommentHandler) FindAllComments(c *fiber.Ctx) error {
-	comments, err := h.usecase.FindAllComments()
+func (h *HttpCommentHandler) FindComments(c *fiber.Ctx) error {
+	var (
+		page  = c.QueryInt("page", 1)
+		limit = 5
+	)
+
+	authorID := uuid.Nil
+	queryAuthorID := c.Query("author_id")
+	if queryAuthorID != "" {
+		var err error
+		authorID, err = uuid.Parse(queryAuthorID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, err, "invalid author id")
+		}
+	}
+
+	parentID := uuid.Nil
+	queryParentID := c.Query("parent_id")
+	if queryParentID != "" {
+		var err error
+		parentID, err = uuid.Parse(queryParentID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, err, "invalid parent id")
+		}
+	}
+
+	rootID := uuid.Nil
+	queryRootID := c.Query("root_id")
+	if queryRootID != "" {
+		var err error
+		rootID, err = uuid.Parse(queryRootID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, err, "invalid root id")
+		}
+	}
+
+	comments, totalComments, err := h.usecase.FindComments(authorID, parentID, rootID, page, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}
-	return c.JSON(dto.ToCommentResponseList(comments))
-}
 
-func (h *HttpCommentHandler) FindCommentsByAuthorID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
-	}
-
-	comments, err := h.usecase.FindCommentsByAuthorID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToCommentResponseList(comments))
-}
-
-func (h *HttpCommentHandler) FindCommentsByParentID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
-	}
-
-	comments, err := h.usecase.FindCommentsByParentID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToCommentResponseList(comments))
-}
-
-func (h *HttpCommentHandler) FindCommentsByRootID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
-	}
-
-	comments, err := h.usecase.FindCommentsByRootID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToCommentResponseList(comments))
+	return c.JSON(fiber.Map{
+		"data": dto.ToCommentResponseList(comments),
+		"meta": fiber.Map{
+			"page":       page,
+			"total":      totalComments,
+			"totalPages": int(math.Ceil(float64(totalComments) / float64(limit))),
+		},
+	})
 }
 
 func (h *HttpCommentHandler) FindCommentByID(c *fiber.Ctx) error {
@@ -100,6 +128,11 @@ func (h *HttpCommentHandler) PatchComment(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
 	}
 
+	err = checkCommentForbidAction(c, h, id)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+
 	var req dto.CommentPatchRequest
 	if err := c.BodyParser(&req); err != nil {
 		return responses.Error(c, err)
@@ -116,6 +149,11 @@ func (h *HttpCommentHandler) DeleteComment(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
+	}
+
+	err = checkCommentForbidAction(c, h, id)
+	if err != nil {
+		return responses.Error(c, err)
 	}
 
 	if err := h.usecase.DeleteComment(id); err != nil {

@@ -22,28 +22,24 @@ func (s *PostService) CreatePost(post *entities.Post) error {
 }
 
 /* No private posts involved */
-func (s *PostService) FindAllPosts() ([]*entities.Post, error) {
-	posts, err := s.repo.FindAll()
-	if err != nil {
-		return nil, err
+func (s *PostService) FindPosts(authorID uuid.UUID, threadID uuid.UUID, title string, page int, limit int) ([]*entities.Post, int64, error) {
+	if page < 1 {
+		page = 1
 	}
-	return posts, nil
-}
 
-func (s *PostService) FindPostsByAuthorID(id uuid.UUID) ([]*entities.Post, error) {
-	posts, err := s.repo.FindByAuthorID(id)
-	if err != nil {
-		return nil, err
-	}
-	return posts, nil
-}
+	offset := (page - 1) * limit
 
-func (s *PostService) FindPostsByThreadID(id uuid.UUID) ([]*entities.Post, error) {
-	posts, err := s.repo.FindByThreadID(id)
+	posts, err := s.repo.Find(authorID, threadID, title, offset, limit)
 	if err != nil {
-		return nil, err
+		return nil, -1, err
 	}
-	return posts, nil
+
+	totalPosts, err := s.repo.Count(false, authorID, threadID, title)
+	if err != nil {
+		return nil, -1, err
+	}
+
+	return posts, totalPosts, nil
 }
 
 func (s *PostService) FindPostByID(id uuid.UUID) (*entities.Post, error) {
@@ -54,73 +50,29 @@ func (s *PostService) FindPostByID(id uuid.UUID) (*entities.Post, error) {
 	return post, nil
 }
 
-func (s *PostService) FindPostByTitle(title string) (*entities.Post, error) {
-	post, err := s.repo.FindByTitle(title)
-	if err != nil {
-		return nil, err
-	}
-	return post, nil
-}
-
 /* Private posts involved */
-func (s *PostService) FindAllPostsCoverPrivate() ([]*entities.Post, error) {
-	posts, err := s.repo.FindAllCoverPrivate()
-	if err != nil {
-		return nil, err
+func (s *PostService) FindPrivatePosts(authorID uuid.UUID, threadID uuid.UUID, title string, page int, limit int) ([]*entities.Post, int64, error) {
+	if page < 1 {
+		page = 1
 	}
-	return posts, nil
-}
 
-func (s *PostService) FindAllPrivatePosts() ([]*entities.Post, error) {
-	posts, err := s.repo.FindAllPrivate()
-	if err != nil {
-		return nil, err
-	}
-	return posts, nil
-}
+	offset := (page - 1) * limit
 
-func (s *PostService) FindPostsCoverPrivateByAuthorID(id uuid.UUID) ([]*entities.Post, error) {
-	posts, err := s.repo.FindCoverPrivateByAuthorID(id)
+	posts, err := s.repo.FindPrivate(authorID, threadID, title, offset, limit)
 	if err != nil {
-		return nil, err
+		return nil, -1, err
 	}
-	return posts, nil
-}
 
-func (s *PostService) FindPrivatePostsByAuthorID(id uuid.UUID) ([]*entities.Post, error) {
-	posts, err := s.repo.FindPrivateByAuthorID(id)
+	totalPosts, err := s.repo.Count(true, authorID, threadID, title)
 	if err != nil {
-		return nil, err
+		return nil, -1, err
 	}
-	return posts, nil
-}
 
-func (s *PostService) FindPostsCoverPrivateByThreadID(id uuid.UUID) ([]*entities.Post, error) {
-	posts, err := s.repo.FindCoverPrivateByThreadID(id)
-	if err != nil {
-		return nil, err
-	}
-	return posts, nil
-}
-
-func (s *PostService) FindPrivatePostsByThreadID(id uuid.UUID) ([]*entities.Post, error) {
-	posts, err := s.repo.FindPrivateByAuthorID(id)
-	if err != nil {
-		return nil, err
-	}
-	return posts, nil
+	return posts, totalPosts, nil
 }
 
 func (s *PostService) FindPrivatePostByID(id uuid.UUID) (*entities.Post, error) {
 	post, err := s.repo.FindPrivateByID(id)
-	if err != nil {
-		return nil, err
-	}
-	return post, nil
-}
-
-func (s *PostService) FindPrivatePostByTitle(title string) (*entities.Post, error) {
-	post, err := s.repo.FindPrivateByTitle(title)
 	if err != nil {
 		return nil, err
 	}

@@ -66,7 +66,7 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	/* === Routes === */
 
-	api := app.Group("/api/v2", middleware.JWTMiddleware(cfg))
+	api := app.Group("/api/v2", middleware.JWTMiddleware(cfg, sessionUseCase, userUseCase))
 
 	api.Get("/me", userHandler.GetUser)
 
@@ -87,32 +87,19 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	postGroup := api.Group("/posts")
 
 	postGroup.Post("/", postHandler.CreatePost)
-	postGroup.Get("/all", middleware.RequireUser(), postHandler.FindAllPostsCoverPrivate)
-	postGroup.Get("/private", middleware.RequireUser(), postHandler.FindAllPrivatePosts)
-	postGroup.Get("/all/author/:id", middleware.RequireUser(), postHandler.FindPostsCoverPrivateByAuthorID)
-	postGroup.Get("/private/author/:id", middleware.RequireUser(), postHandler.FindPrivatePostsByAuthorID)
-	postGroup.Get("/all/thread/:id", middleware.RequireUser(), postHandler.FindPostsCoverPrivateByThreadID)
-	postGroup.Get("/private/thread/:id", middleware.RequireUser(), postHandler.FindPrivatePostsByThreadID)
+	postGroup.Get("/private", middleware.RequireUser(), postHandler.FindPrivatePosts)
 	postGroup.Get("/private/:id", middleware.RequireUser(), postHandler.FindPrivatePostByID)
-	postGroup.Get("/private/title/:title", middleware.RequireUser(), postHandler.FindPrivatePostByTitle)
-	postGroup.Patch("/:id", middleware.RequireUser(), postHandler.PatchPost)
-	postGroup.Delete("/:id", middleware.RequireUser(), postHandler.DeletePost)
+	postGroup.Patch("/private/:id", middleware.RequireUser(), postHandler.PatchPost)
+	postGroup.Delete("/private/:id", middleware.RequireUser(), postHandler.DeletePost)
 
 	likeGroup := api.Group("/likes")
 
 	likeGroup.Post("/", likeHandler.CreateLike)
-	likeGroup.Get("/:parent_type", middleware.RequireUser(), likeHandler.FindAllLikes)
-	likeGroup.Get("/owner/:id/:parent_type", middleware.RequireUser(), likeHandler.FindLikesByOwnerID)
-	likeGroup.Get("/parent/:id/:parent_type", middleware.RequireUser(), likeHandler.FindLikesByParentID)
-	likeGroup.Get("/id/:id/:parent_type", middleware.RequireUser(), likeHandler.FindLikeByID)
-	likeGroup.Get("/count/:parent_type/:id", middleware.RequireUser(), likeHandler.LikeCountByParentID)
-	likeGroup.Get("/is_liked/:parent_type/:parent_id/:my_id", middleware.RequireUser(), likeHandler.IsParentLikedByMe)
-	likeGroup.Delete("/:id/:parent_type", middleware.RequireUser(), likeHandler.DeleteLike)
+	likeGroup.Delete("/:id", middleware.RequireUser(), likeHandler.DeleteLike)
 
 	commentGroup := api.Group("/comments")
 
 	commentGroup.Post("/", commentHandler.CreateComment)
-	commentGroup.Get("/:id", middleware.RequireUser(), commentHandler.FindCommentByID)
 	commentGroup.Patch("/:id", middleware.RequireUser(), commentHandler.PatchComment)
 	commentGroup.Delete("/:id", middleware.RequireUser(), commentHandler.DeleteComment)
 }

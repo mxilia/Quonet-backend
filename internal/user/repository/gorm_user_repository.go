@@ -21,9 +21,9 @@ func (r *GormUserRepository) Save(user *entities.User) error {
 	return nil
 }
 
-func (r *GormUserRepository) FindAll() ([]*entities.User, error) {
+func (r *GormUserRepository) FindAll(offset int, limit int) ([]*entities.User, error) {
 	var usersValue []entities.User
-	if err := r.db.Find(&usersValue).Error; err != nil {
+	if err := r.db.Limit(limit).Offset(offset).Find(&usersValue).Error; err != nil {
 		return nil, err
 	}
 
@@ -56,6 +56,14 @@ func (r *GormUserRepository) FindByEmail(email string) (*entities.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *GormUserRepository) Count() (int64, error) {
+	var count int64
+	if err := r.db.Model(&entities.User{}).Count(&count).Error; err != nil {
+		return -1, err
+	}
+	return count, nil
 }
 
 func (r *GormUserRepository) Patch(id uuid.UUID, user *entities.User) error {

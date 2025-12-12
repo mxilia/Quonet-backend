@@ -7,6 +7,7 @@ import (
 	threadHandler "github.com/mxilia/Quonet-backend/internal/thread/handler/rest"
 	threadRepository "github.com/mxilia/Quonet-backend/internal/thread/repository"
 	threadUseCase "github.com/mxilia/Quonet-backend/internal/thread/usecase"
+	"github.com/mxilia/Quonet-backend/internal/transaction"
 
 	userHandler "github.com/mxilia/Quonet-backend/internal/user/handler/rest"
 	userRepository "github.com/mxilia/Quonet-backend/internal/user/repository"
@@ -24,12 +25,18 @@ import (
 	sessionRepository "github.com/mxilia/Quonet-backend/internal/session/repository"
 	sessionUseCase "github.com/mxilia/Quonet-backend/internal/session/usecase"
 
+	likeHandler "github.com/mxilia/Quonet-backend/internal/like/handler/rest"
+	likeRepository "github.com/mxilia/Quonet-backend/internal/like/repository"
+	likeUseCase "github.com/mxilia/Quonet-backend/internal/like/usecase"
+
 	"github.com/mxilia/Quonet-backend/pkg/config"
 )
 
 func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	/* === Dependencies Wiring === */
+
+	txManager := transaction.NewGormTxManager(db)
 
 	threadRepo := threadRepository.NewGormThreadRepository(db)
 	threadUseCase := threadUseCase.NewThreadService(threadRepo)
@@ -52,13 +59,16 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	commentUseCase := commentUseCase.NewCommentService(commentRepo)
 	commentHandler := commentHandler.NewHttpCommentHandler(commentUseCase)
 
+	likeRepo := likeRepository.NewGormLikeRepository(db)
+	likeUseCase := likeUseCase.NewLikeService(likeRepo, txManager, postUseCase, commentUseCase)
+	likeHandler := likeHandler.NewHttpLikeHandler(likeUseCase)
+
 	/* === Routes === */
 
 	api := app.Group("/api/v2")
 
 	authGroup := api.Group("/auth")
 
-	authGroup.Post("/refresh", sessionHandler.RenewToken)
 	authGroup.Post("/logout", sessionHandler.Logout)
 
 	googleAuthGroup := authGroup.Group("/google")
@@ -69,27 +79,28 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	threadGroup := api.Group("/threads")
 
 	threadGroup.Get("/", threadHandler.FindAllThreads)
-	threadGroup.Get("/id/:id", threadHandler.FindThreadByID)
+	threadGroup.Get("/:id", threadHandler.FindThreadByID)
 
 	userGroup := api.Group("/users")
 
 	userGroup.Get("/", userHandler.FindAllUsers)
-	userGroup.Get("/id/:id", userHandler.FindUserByID)
+	userGroup.Get("/:id", userHandler.FindUserByID)
 	userGroup.Get("/handler/:handler", userHandler.FindUserByHandler)
 	userGroup.Get("/email/:email", userHandler.FindUserByEmail)
 
 	postGroup := api.Group("/posts")
 
-	postGroup.Get("/", postHandler.FindAllPosts)
-	postGroup.Get("/author/:id", postHandler.FindPostsByAuthorID)
-	postGroup.Get("/thread/:id", postHandler.FindPostsByThreadID)
-	postGroup.Get("/id/:id", postHandler.FindPostByID)
-	postGroup.Get("/title/:title", postHandler.FindPostByTitle)
+	postGroup.Get("/", postHandler.FindPosts)
+	postGroup.Get("/:id", postHandler.FindPostByID)
+
+	likeGroup := api.Group("/likes")
+
+	likeGroup.Get("/", likeHandler.FindLikes)
+	likeGroup.Get("/:id", likeHandler.FindLikeByID)
+	likeGroup.Get("/count", likeHandler.Count)
 
 	commentGroup := api.Group("/comments")
 
-	commentGroup.Get("/", commentHandler.FindAllComments)
-	commentGroup.Get("/author/:author_id", commentHandler.FindCommentsByAuthorID)
-	commentGroup.Get("/parent/:parent_id", commentHandler.FindCommentsByParentID)
-	commentGroup.Get("/root/:root_id", commentHandler.FindCommentsByRootID)
+	commentGroup.Get("/", commentHandler.FindComments)
+	commentGroup.Get("/:id", commentHandler.FindCommentByID)
 }

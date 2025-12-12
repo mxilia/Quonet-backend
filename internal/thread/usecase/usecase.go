@@ -21,12 +21,23 @@ func (s *ThreadService) CreateThread(thread *entities.Thread) error {
 	return nil
 }
 
-func (s *ThreadService) FindAllThreads() ([]*entities.Thread, error) {
-	threads, err := s.repo.FindAll()
-	if err != nil {
-		return nil, err
+func (s *ThreadService) FindAllThreads(page int, limit int) ([]*entities.Thread, int64, error) {
+	if page < 1 {
+		page = 1
 	}
-	return threads, nil
+
+	offset := (page - 1) * limit
+
+	threads, err := s.repo.FindAll(offset, limit)
+	if err != nil {
+		return nil, -1, err
+	}
+
+	count, err := s.repo.Count()
+	if err != nil {
+		return nil, -1, err
+	}
+	return threads, count, nil
 }
 
 func (s *ThreadService) FindThreadByID(id uuid.UUID) (*entities.Thread, error) {

@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"math"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/entities"
@@ -16,6 +18,28 @@ type HttpLikeHandler struct {
 
 func NewHttpLikeHandler(usecase usecase.LikeUseCase) *HttpLikeHandler {
 	return &HttpLikeHandler{usecase: usecase}
+}
+
+func checkLikeForbidAction(c *fiber.Ctx, h *HttpLikeHandler, likeID uuid.UUID) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return appError.ErrUnauthorized
+	}
+
+	authorID, err := uuid.Parse(userID)
+	if err != nil {
+		return appError.ErrUnauthorized
+	}
+
+	existedLike, err := h.usecase.FindLikeByID(likeID)
+	if err != nil {
+		return err
+	}
+
+	if c.Locals("role").(string) == "member" && existedLike.OwnerID != authorID {
+		return appError.ErrForbidden
+	}
+	return nil
 }
 
 func (h *HttpLikeHandler) CreateLike(c *fiber.Ctx) error {
@@ -41,87 +65,91 @@ func (h *HttpLikeHandler) CreateLike(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(dto.ToLikeResponse(like))
 }
 
-func (h *HttpLikeHandler) FindAllLikes(c *fiber.Ctx) error {
-	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "all" {
+func (h *HttpLikeHandler) FindLikes(c *fiber.Ctx) error {
+	var (
+		page  = c.QueryInt("page", 1)
+		limit = 15
+	)
+
+	parentType := c.Query("parent_type")
+	if parentType != "comment" && parentType != "post" && parentType != "" {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 
-	likes, err := h.usecase.FindAllLikes(parentType)
+	ownerID := uuid.Nil
+	unparsedOwnerID := c.Query("owner_id")
+	if unparsedOwnerID != "" {
+		var err error
+		ownerID, err = uuid.Parse(unparsedOwnerID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid owner id")
+		}
+	}
+
+	parentID := uuid.Nil
+	unparsedParentID := c.Query("parent_id")
+	if unparsedParentID != "" {
+		var err error
+		parentID, err = uuid.Parse(unparsedParentID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid parent id")
+		}
+	}
+
+	likes, totalLikes, err := h.usecase.FindLikes(parentType, ownerID, parentID, page, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}
-	return c.JSON(dto.ToLikeResponseList(likes))
-}
-
-func (h *HttpLikeHandler) FindLikesByOwnerID(c *fiber.Ctx) error {
-	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "all" {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
-
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, err, "invalid id")
-	}
-
-	likes, err := h.usecase.FindLikesByOwnerID(parentType, id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-
-	return c.JSON(dto.ToLikeResponseList(likes))
-}
-
-func (h *HttpLikeHandler) FindLikesByParentID(c *fiber.Ctx) error {
-	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "all" {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
-
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, err, "invalid id")
-	}
-
-	likes, err := h.usecase.FindLikesByParentID(parentType, id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-
-	return c.JSON(dto.ToLikeResponseList(likes))
+	return c.JSON(fiber.Map{
+		"data": dto.ToLikeResponseList(likes),
+		"meta": fiber.Map{
+			"page":       page,
+			"total":      totalLikes,
+			"totalPages": int(math.Ceil(float64(totalLikes) / float64(limit))),
+		},
+	})
 }
 
 func (h *HttpLikeHandler) FindLikeByID(c *fiber.Ctx) error {
-	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "all" {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
-
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "invalid id")
 	}
 
-	like, err := h.usecase.FindLikeByID(parentType, id)
+	like, err := h.usecase.FindLikeByID(id)
 	if err != nil {
 		return responses.Error(c, err)
 	}
 	return c.JSON(dto.ToLikeResponse(like))
 }
 
-func (h *HttpLikeHandler) LikeCountByParentID(c *fiber.Ctx) error {
-	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "all" {
+func (h *HttpLikeHandler) Count(c *fiber.Ctx) error {
+	parentType := c.Query("parent_type")
+	if parentType != "comment" && parentType != "post" && parentType != "" {
 		return responses.Error(c, appError.ErrInvalidData)
 	}
 
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, err, "invalid id")
+	ownerID := uuid.Nil
+	unparsedOwnerID := c.Query("owner_id")
+	if unparsedOwnerID != "" {
+		var err error
+		ownerID, err = uuid.Parse(unparsedOwnerID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid owner id")
+		}
 	}
 
-	count, err := h.usecase.LikeCountByParentID(parentType, id)
+	parentID := uuid.Nil
+	unparsedParentID := c.Query("parent_id")
+	if unparsedParentID != "" {
+		var err error
+		parentID, err = uuid.Parse(unparsedParentID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid parent id")
+		}
+	}
+
+	count, err := h.usecase.Count(parentType, ownerID, parentID)
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to get like count")
 	}
@@ -129,42 +157,15 @@ func (h *HttpLikeHandler) LikeCountByParentID(c *fiber.Ctx) error {
 	return c.JSON(dto.ToLikeCountResponse(count))
 }
 
-func (h *HttpLikeHandler) IsParentLikedByMe(c *fiber.Ctx) error {
-	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "all" {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
-
-	parentID, err := uuid.Parse(c.Params("parent_id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, err, "invalid id")
-	}
-
-	myID, err := uuid.Parse(c.Params("my_id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, err, "invalid id")
-	}
-
-	isLiked, err := h.usecase.IsParentLikedByMe(parentType, parentID, myID)
-	if err != nil {
-		return responses.ErrorWithMessage(c, err, "failed to get isliked")
-	}
-
-	return c.JSON(dto.ToIsLikedResponse(isLiked))
-}
-
 func (h *HttpLikeHandler) DeleteLike(c *fiber.Ctx) error {
-	parentType := c.Params("parent_type")
-	if parentType != "comment" && parentType != "post" && parentType != "all" {
-		return responses.Error(c, appError.ErrInvalidData)
-	}
-
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "invalid id")
 	}
 
-	if err := h.usecase.DeleteLike(parentType, id); err != nil {
+	checkLikeForbidAction(c, h, id)
+
+	if err := h.usecase.DeleteLike(id); err != nil {
 		responses.ErrorWithMessage(c, err, "failed to delete like")
 	}
 	return responses.Message(c, fiber.StatusOK, "deleted successfully")

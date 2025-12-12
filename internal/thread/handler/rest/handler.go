@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"math"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/entities"
@@ -32,12 +34,24 @@ func (h *HttpThreadHandler) CreateThread(c *fiber.Ctx) error {
 }
 
 func (h *HttpThreadHandler) FindAllThreads(c *fiber.Ctx) error {
-	threads, err := h.threadUseCase.FindAllThreads()
+	var (
+		page  = c.QueryInt("page", 1)
+		limit = 5
+	)
+
+	threads, totalThreads, err := h.threadUseCase.FindAllThreads(page, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}
 
-	return c.JSON(dto.ToThreadResponseList(threads))
+	return c.JSON(fiber.Map{
+		"data": dto.ToThreadResponseList(threads),
+		"meta": fiber.Map{
+			"page":       page,
+			"total":      totalThreads,
+			"totalPages": int(math.Ceil(float64(totalThreads) / float64(limit))),
+		},
+	})
 }
 
 func (h *HttpThreadHandler) FindThreadByID(c *fiber.Ctx) error {

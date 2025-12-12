@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"math"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/entities"
@@ -8,6 +10,7 @@ import (
 	"github.com/mxilia/Quonet-backend/internal/post/usecase"
 	appError "github.com/mxilia/Quonet-backend/pkg/apperror"
 	"github.com/mxilia/Quonet-backend/pkg/responses"
+	"github.com/mxilia/Quonet-backend/utils/format"
 )
 
 type HttpPostHandler struct {
@@ -41,39 +44,73 @@ func (h *HttpPostHandler) CreatePost(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(dto.ToPostResponse(post))
 }
 
+func checkPostForbidAction(c *fiber.Ctx, h *HttpPostHandler, postID uuid.UUID) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return appError.ErrUnauthorized
+	}
+
+	authorID, err := uuid.Parse(userID)
+	if err != nil {
+		return appError.ErrUnauthorized
+	}
+
+	existedPost, err := h.usecase.FindPrivatePostByID(postID)
+	if err != nil {
+		return err
+	}
+
+	if c.Locals("role").(string) == "member" && existedPost.AuthorID != authorID {
+		return appError.ErrForbidden
+	}
+	return nil
+}
+
 /* No private posts involved */
-func (h *HttpPostHandler) FindAllPosts(c *fiber.Ctx) error {
-	posts, err := h.usecase.FindAllPosts()
+func (h *HttpPostHandler) FindPosts(c *fiber.Ctx) error {
+	var (
+		page  = c.QueryInt("page", 1)
+		limit = 3
+	)
+
+	authorID := uuid.Nil
+	queryAuthorID := c.Query("author_id")
+	if queryAuthorID != "" {
+		var err error
+		authorID, err = uuid.Parse(queryAuthorID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, err, "invalid author id")
+		}
+	}
+
+	threadID := uuid.Nil
+	queryThreadID := c.Query("thread_id")
+	if queryThreadID != "" {
+		var err error
+		threadID, err = uuid.Parse(queryThreadID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, err, "invalid thread id")
+		}
+	}
+
+	title := c.Query("title")
+	if title != "" {
+		title = format.DashToSpace(title)
+	}
+
+	posts, totalPosts, err := h.usecase.FindPosts(authorID, threadID, title, page, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}
-	return c.JSON(dto.ToPostResponseList(posts))
-}
 
-func (h *HttpPostHandler) FindPostsByAuthorID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
-	}
-
-	posts, err := h.usecase.FindPostsByAuthorID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToPostResponseList(posts))
-}
-
-func (h *HttpPostHandler) FindPostsByThreadID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
-	}
-
-	posts, err := h.usecase.FindPostsByThreadID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToPostResponseList(posts))
+	return c.JSON(fiber.Map{
+		"data": dto.ToPostResponseList(posts),
+		"meta": fiber.Map{
+			"page":       page,
+			"total":      totalPosts,
+			"totalPages": int(math.Ceil(float64(totalPosts) / float64(limit))),
+		},
+	})
 }
 
 func (h *HttpPostHandler) FindPostByID(c *fiber.Ctx) error {
@@ -89,81 +126,64 @@ func (h *HttpPostHandler) FindPostByID(c *fiber.Ctx) error {
 	return c.JSON(dto.ToPostResponse(post))
 }
 
-func (h *HttpPostHandler) FindPostByTitle(c *fiber.Ctx) error {
-	post, err := h.usecase.FindPostByTitle(c.Params("title"))
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToPostResponse(post))
-}
-
 /* Private posts involved */
-func (h *HttpPostHandler) FindAllPostsCoverPrivate(c *fiber.Ctx) error {
-	posts, err := h.usecase.FindAllPostsCoverPrivate()
+func (h *HttpPostHandler) FindPrivatePosts(c *fiber.Ctx) error {
+	var (
+		page  = c.QueryInt("page", 1)
+		limit = 3
+	)
+
+	authorID := uuid.Nil
+	queryAuthorID := c.Query("author_id")
+	if queryAuthorID != "" {
+		var err error
+		authorID, err = uuid.Parse(queryAuthorID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, err, "invalid author id")
+		}
+	}
+
+	if queryAuthorID != "" && c.Locals("role").(string) == "member" {
+		userID := c.Locals("user_id").(string)
+		if userID == "" {
+			return responses.Error(c, appError.ErrUnauthorized)
+		}
+
+		var err error
+		authorID, err = uuid.Parse(userID)
+		if err != nil {
+			return responses.Error(c, appError.ErrUnauthorized)
+		}
+	}
+
+	threadID := uuid.Nil
+	queryThreadID := c.Query("thread_id")
+	if queryThreadID != "" {
+		var err error
+		threadID, err = uuid.Parse(queryThreadID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, err, "invalid thread id")
+		}
+	}
+
+	title := c.Query("title")
+	if title != "" {
+		title = format.DashToSpace(title)
+	}
+
+	posts, totalPosts, err := h.usecase.FindPrivatePosts(authorID, threadID, title, page, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}
-	return c.JSON(dto.ToPostResponseList(posts))
-}
 
-func (h *HttpPostHandler) FindAllPrivatePosts(c *fiber.Ctx) error {
-	posts, err := h.usecase.FindAllPrivatePosts()
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToPostResponseList(posts))
-}
-
-func (h *HttpPostHandler) FindPostsCoverPrivateByAuthorID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
-	}
-
-	posts, err := h.usecase.FindPostsCoverPrivateByAuthorID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToPostResponseList(posts))
-}
-
-func (h *HttpPostHandler) FindPrivatePostsByAuthorID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
-	}
-
-	posts, err := h.usecase.FindPrivatePostsByAuthorID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToPostResponseList(posts))
-}
-
-func (h *HttpPostHandler) FindPostsCoverPrivateByThreadID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
-	}
-
-	posts, err := h.usecase.FindPostsCoverPrivateByThreadID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToPostResponseList(posts))
-}
-
-func (h *HttpPostHandler) FindPrivatePostsByThreadID(c *fiber.Ctx) error {
-	id, err := uuid.Parse(c.Params("id"))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
-	}
-
-	posts, err := h.usecase.FindPrivatePostsByThreadID(id)
-	if err != nil {
-		return responses.Error(c, err)
-	}
-	return c.JSON(dto.ToPostResponseList(posts))
+	return c.JSON(fiber.Map{
+		"data": dto.ToPostResponseList(posts),
+		"meta": fiber.Map{
+			"page":       page,
+			"total":      totalPosts,
+			"totalPages": int(math.Ceil(float64(totalPosts) / float64(limit))),
+		},
+	})
 }
 
 func (h *HttpPostHandler) FindPrivatePostByID(c *fiber.Ctx) error {
@@ -172,15 +192,12 @@ func (h *HttpPostHandler) FindPrivatePostByID(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
 	}
 
-	post, err := h.usecase.FindPrivatePostByID(id)
+	err = checkPostForbidAction(c, h, id)
 	if err != nil {
 		return responses.Error(c, err)
 	}
-	return c.JSON(dto.ToPostResponse(post))
-}
 
-func (h *HttpPostHandler) FindPrivatePostByTitle(c *fiber.Ctx) error {
-	post, err := h.usecase.FindPrivatePostByTitle(c.Params("title"))
+	post, err := h.usecase.FindPrivatePostByID(id)
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -191,6 +208,11 @@ func (h *HttpPostHandler) PatchPost(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
+	}
+
+	err = checkPostForbidAction(c, h, id)
+	if err != nil {
+		return responses.Error(c, err)
 	}
 
 	var req dto.PostPatchRequest
@@ -210,6 +232,11 @@ func (h *HttpPostHandler) DeletePost(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
+	}
+
+	err = checkPostForbidAction(c, h, id)
+	if err != nil {
+		return responses.Error(c, err)
 	}
 
 	if err := h.usecase.DeletePost(id); err != nil {

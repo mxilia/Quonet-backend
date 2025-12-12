@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
+	"math"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,7 +22,7 @@ import (
 )
 
 type HttpUserHandler struct {
-	userUseCase       usecase.UserUseCase
+	usecase           usecase.UserUseCase
 	oauthGoogleConfig *oauth2.Config
 	cfg               *config.Config
 	tokenMaker        *token.JWTMaker
@@ -31,7 +31,7 @@ type HttpUserHandler struct {
 
 func NewHttpUserHandler(userUseCase usecase.UserUseCase, sessionUseCase sessionUseCase.SessionUseCase, cfg *config.Config) *HttpUserHandler {
 	return &HttpUserHandler{
-		userUseCase: userUseCase,
+		usecase: userUseCase,
 		oauthGoogleConfig: &oauth2.Config{
 			ClientID:     cfg.GOOGLE_CLIENT_ID,
 			ClientSecret: cfg.GOOGLE_CLIENT_SECRET,
@@ -45,13 +45,35 @@ func NewHttpUserHandler(userUseCase usecase.UserUseCase, sessionUseCase sessionU
 	}
 }
 
-func (h *HttpUserHandler) GetUser(c *fiber.Ctx) error {
-	userID, err := uuid.Parse(c.Locals("user_id").(string))
-	if err != nil {
-		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
+func checkUserForbidAction(c *fiber.Ctx, h *HttpUserHandler, targetID uuid.UUID) error {
+	unparsedUserID := c.Locals("user_id").(string)
+	if unparsedUserID == "" {
+		return appError.ErrUnauthorized
 	}
 
-	user, err := h.userUseCase.FindUserByID(userID)
+	userID, err := uuid.Parse(unparsedUserID)
+	if err != nil {
+		return appError.ErrUnauthorized
+	}
+
+	existedUser, err := h.usecase.FindUserByID(targetID)
+	if err != nil {
+		return err
+	}
+
+	if c.Locals("role").(string) == "member" && existedUser.ID != userID {
+		return appError.ErrForbidden
+	}
+	return nil
+}
+
+func (h *HttpUserHandler) GetUser(c *fiber.Ctx) error {
+	userID := c.Locals("user_id")
+	if userID == nil {
+		return responses.Error(c, appError.ErrUnauthorized)
+	}
+
+	user, err := h.usecase.FindUserByID(userID.(uuid.UUID))
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -90,7 +112,7 @@ func (h *HttpUserHandler) GoogleCallBack(c *fiber.Ctx) error {
 	}
 
 	client := h.oauthGoogleConfig.Client(c.Context(), token)
-	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to get user info from google api")
 	}
@@ -101,9 +123,14 @@ func (h *HttpUserHandler) GoogleCallBack(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "failed to decode user info")
 	}
 
-	user, err := h.userUseCase.GoogleUserEntry(dto.FromCreateUserByGoogleRequest(&googleReq))
+	user, err := h.usecase.GoogleUserEntry(dto.FromCreateUserByGoogleRequest(&googleReq))
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to login via google")
+	}
+
+	accessToken, accessClaims, err := h.tokenMaker.CreateToken(user.ID, user.Email, user.Role, 10*time.Minute)
+	if err != nil {
+		return responses.ErrorWithMessage(c, appError.ErrInternalServer, "failed to create token")
 	}
 
 	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(user.ID, user.Email, user.Role, 30*24*time.Hour)
@@ -129,30 +156,48 @@ func (h *HttpUserHandler) GoogleCallBack(c *fiber.Ctx) error {
 		Secure:   false,
 	})
 
-	fmt.Println(h.cfg.Env, h.cfg.Domain)
+	c.Cookie(&fiber.Cookie{
+		Name:     "accessToken",
+		Value:    accessToken,
+		Expires:  accessClaims.RegisteredClaims.ExpiresAt.Time,
+		HTTPOnly: true,
+		Secure:   h.cfg.Env == "production",
+		SameSite: "Lax",
+		Domain:   h.cfg.Domain,
+	})
 
 	c.Cookie(&fiber.Cookie{
-		Name:     "token",
+		Name:     "refreshToken",
 		Value:    refreshToken,
 		Expires:  refreshClaims.RegisteredClaims.ExpiresAt.Time,
 		HTTPOnly: true,
 		Secure:   h.cfg.Env == "production",
 		SameSite: "Lax",
-		/*
-			Domain:   h.cfg.Domain,
-			Path:     "/",
-		*/
+		Domain:   h.cfg.Domain,
 	})
 
 	return c.Redirect(h.cfg.FRONTEND_OAUTH_REDIRECT_URL, fiber.StatusSeeOther)
 }
 
 func (h *HttpUserHandler) FindAllUsers(c *fiber.Ctx) error {
-	users, err := h.userUseCase.FindAllUsers()
+	var (
+		page  = c.QueryInt("page", 1)
+		limit = 10
+	)
+
+	users, totalUsers, err := h.usecase.FindAllUsers(page, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}
-	return c.JSON(dto.ToUserResponseList(users))
+	return c.JSON(fiber.Map{
+		"data": dto.ToUserResponseList(users),
+		"meta": fiber.Map{
+			"page":       page,
+			"total":      totalUsers,
+			"totalPages": int(math.Ceil(float64(totalUsers) / float64(limit))),
+		},
+	},
+	)
 }
 
 func (h *HttpUserHandler) FindUserByID(c *fiber.Ctx) error {
@@ -161,7 +206,7 @@ func (h *HttpUserHandler) FindUserByID(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
 	}
 
-	user, err := h.userUseCase.FindUserByID(userID)
+	user, err := h.usecase.FindUserByID(userID)
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to find user by id")
 	}
@@ -170,7 +215,7 @@ func (h *HttpUserHandler) FindUserByID(c *fiber.Ctx) error {
 }
 
 func (h *HttpUserHandler) FindUserByHandler(c *fiber.Ctx) error {
-	user, err := h.userUseCase.FindUserByHandler(c.Params("handler"))
+	user, err := h.usecase.FindUserByHandler(c.Params("handler"))
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -178,7 +223,7 @@ func (h *HttpUserHandler) FindUserByHandler(c *fiber.Ctx) error {
 }
 
 func (h *HttpUserHandler) FindUserByEmail(c *fiber.Ctx) error {
-	user, err := h.userUseCase.FindUserByEmail(c.Params("email"))
+	user, err := h.usecase.FindUserByEmail(c.Params("email"))
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -218,7 +263,12 @@ func (h *HttpUserHandler) PatchUser(c *fiber.Ctx) error {
 		}
 	}
 
-	if err := h.userUseCase.PatchUser(userID, userInfo); err != nil {
+	err = checkUserForbidAction(c, h, userID)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+
+	if err := h.usecase.PatchUser(userID, userInfo); err != nil {
 		return responses.Error(c, err)
 	}
 
@@ -231,7 +281,12 @@ func (h *HttpUserHandler) DeleteUser(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid id")
 	}
 
-	if err := h.userUseCase.DeleteUser(userID); err != nil {
+	err = checkUserForbidAction(c, h, userID)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+
+	if err := h.usecase.DeleteUser(userID); err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to delete user by id")
 	}
 

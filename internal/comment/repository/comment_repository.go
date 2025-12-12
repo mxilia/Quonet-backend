@@ -7,11 +7,9 @@ import (
 
 type CommentRepository interface {
 	Save(comment *entities.Comment) error
-	FindAll() ([]*entities.Comment, error)
-	FindByAuthorID(id uuid.UUID) ([]*entities.Comment, error)
-	FindByParentID(id uuid.UUID) ([]*entities.Comment, error)
-	FindByRootID(id uuid.UUID) ([]*entities.Comment, error)
+	Find(authorID uuid.UUID, parentID uuid.UUID, rootID uuid.UUID, offset int, limit int) ([]*entities.Comment, error)
 	FindByID(id uuid.UUID) (*entities.Comment, error)
+	Count() (int64, error)
 	Patch(id uuid.UUID, comment *entities.Comment) error
 	Delete(id uuid.UUID) error
 }

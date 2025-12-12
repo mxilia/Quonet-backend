@@ -22,35 +22,22 @@ func (r *GormPostRepository) Save(post *entities.Post) error {
 }
 
 /* No private posts involved */
-func (r *GormPostRepository) FindAll() ([]*entities.Post, error) {
+func (r *GormPostRepository) Find(authorID uuid.UUID, threadID uuid.UUID, title string, offset int, limit int) ([]*entities.Post, error) {
+	query := r.db.Preload("Author").Where("is_private = ?", false)
+	if authorID != uuid.Nil {
+		query = query.Where("author_id = ?", authorID)
+	}
+
+	if threadID != uuid.Nil {
+		query = query.Where("thread_id = ?", threadID)
+	}
+
+	if title != "" {
+		query = query.Where("title = ?", title)
+	}
+
 	var postsValue []entities.Post
-	if err := r.db.Preload("Author").Where("is_private = ?", false).Find(&postsValue).Error; err != nil {
-		return nil, err
-	}
-
-	posts := make([]*entities.Post, len(postsValue))
-	for i := range postsValue {
-		posts[i] = &postsValue[i]
-	}
-	return posts, nil
-}
-
-func (r *GormPostRepository) FindByAuthorID(id uuid.UUID) ([]*entities.Post, error) {
-	var postsValue []entities.Post
-	if err := r.db.Preload("Author").Where("is_private = ?", false).Where("author_id = ?", id).Find(&postsValue).Error; err != nil {
-		return nil, err
-	}
-
-	posts := make([]*entities.Post, len(postsValue))
-	for i := range postsValue {
-		posts[i] = &postsValue[i]
-	}
-	return posts, nil
-}
-
-func (r *GormPostRepository) FindByThreadID(id uuid.UUID) ([]*entities.Post, error) {
-	var postsValue []entities.Post
-	if err := r.db.Preload("Author").Where("is_private = ?", false).Where("thread_id = ?", id).Find(&postsValue).Error; err != nil {
+	if err := query.Limit(limit).Offset(offset).Find(&postsValue).Error; err != nil {
 		return nil, err
 	}
 
@@ -69,83 +56,23 @@ func (r *GormPostRepository) FindByID(id uuid.UUID) (*entities.Post, error) {
 	return &post, nil
 }
 
-func (r *GormPostRepository) FindByTitle(title string) (*entities.Post, error) {
-	var post entities.Post
-	if err := r.db.Preload("Author").Where("is_private = ?", false).Where("title = ?", title).First(&post).Error; err != nil {
-		return nil, err
-	}
-	return &post, nil
-}
-
 /* Private posts involved */
-func (r *GormPostRepository) FindAllCoverPrivate() ([]*entities.Post, error) {
+func (r *GormPostRepository) FindPrivate(authorID uuid.UUID, threadID uuid.UUID, title string, offset int, limit int) ([]*entities.Post, error) {
+	query := r.db.Preload("Author").Where("is_private = ?", true)
+	if authorID != uuid.Nil {
+		query = query.Where("author_id = ?", authorID)
+	}
+
+	if threadID != uuid.Nil {
+		query = query.Where("thread_id = ?", threadID)
+	}
+
+	if title != "" {
+		query = query.Where("title = ?", title)
+	}
+
 	var postsValue []entities.Post
-	if err := r.db.Find(&postsValue).Error; err != nil {
-		return nil, err
-	}
-
-	posts := make([]*entities.Post, len(postsValue))
-	for i := range postsValue {
-		posts[i] = &postsValue[i]
-	}
-	return posts, nil
-}
-
-func (r *GormPostRepository) FindAllPrivate() ([]*entities.Post, error) {
-	var postsValue []entities.Post
-	if err := r.db.Where("is_private = ?", true).Find(&postsValue).Error; err != nil {
-		return nil, err
-	}
-
-	posts := make([]*entities.Post, len(postsValue))
-	for i := range postsValue {
-		posts[i] = &postsValue[i]
-	}
-	return posts, nil
-}
-
-func (r *GormPostRepository) FindCoverPrivateByAuthorID(id uuid.UUID) ([]*entities.Post, error) {
-	var postsValue []entities.Post
-	if err := r.db.Where("author_id = ?", id).Find(&postsValue).Error; err != nil {
-		return nil, err
-	}
-
-	posts := make([]*entities.Post, len(postsValue))
-	for i := range postsValue {
-		posts[i] = &postsValue[i]
-	}
-	return posts, nil
-}
-
-func (r *GormPostRepository) FindPrivateByAuthorID(id uuid.UUID) ([]*entities.Post, error) {
-	var postsValue []entities.Post
-	if err := r.db.Where("is_private = ?", true).Where("author_id = ?", id).Find(&postsValue).Error; err != nil {
-		return nil, err
-	}
-
-	posts := make([]*entities.Post, len(postsValue))
-	for i := range postsValue {
-		posts[i] = &postsValue[i]
-	}
-	return posts, nil
-}
-
-func (r *GormPostRepository) FindCoverPrivateByThreadID(id uuid.UUID) ([]*entities.Post, error) {
-	var postsValue []entities.Post
-	if err := r.db.Where("thread_id = ?", id).Find(&postsValue).Error; err != nil {
-		return nil, err
-	}
-
-	posts := make([]*entities.Post, len(postsValue))
-	for i := range postsValue {
-		posts[i] = &postsValue[i]
-	}
-	return posts, nil
-}
-
-func (r *GormPostRepository) FindPrivateByThreadID(id uuid.UUID) ([]*entities.Post, error) {
-	var postsValue []entities.Post
-	if err := r.db.Where("is_private = ?", true).Where("thread_id = ?", id).Find(&postsValue).Error; err != nil {
+	if err := query.Limit(limit).Offset(offset).Find(&postsValue).Error; err != nil {
 		return nil, err
 	}
 
@@ -164,12 +91,25 @@ func (r *GormPostRepository) FindPrivateByID(id uuid.UUID) (*entities.Post, erro
 	return &post, nil
 }
 
-func (r *GormPostRepository) FindPrivateByTitle(title string) (*entities.Post, error) {
-	var post entities.Post
-	if err := r.db.Where("is_private = ?", true).Where("title = ?", title).First(&post).Error; err != nil {
-		return nil, err
+func (r *GormPostRepository) Count(isPrivate bool, authorID uuid.UUID, threadID uuid.UUID, title string) (int64, error) {
+	query := r.db.Model(&entities.Post{}).Where("is_private = ?", isPrivate)
+	if authorID != uuid.Nil {
+		query = query.Where("author_id = ?", authorID)
 	}
-	return &post, nil
+
+	if threadID != uuid.Nil {
+		query = query.Where("thread_id = ?", threadID)
+	}
+
+	if title != "" {
+		query = query.Where("title = ?", title)
+	}
+
+	var count int64
+	if err := query.Count(&count).Error; err != nil {
+		return -1, err
+	}
+	return count, nil
 }
 
 func (r *GormPostRepository) Patch(id uuid.UUID, post *entities.Post) error {

@@ -38,12 +38,23 @@ func (s *UserService) GoogleUserEntry(user *entities.User) (*entities.User, erro
 	return registeredUser, nil
 }
 
-func (s *UserService) FindAllUsers() ([]*entities.User, error) {
-	users, err := s.repo.FindAll()
-	if err != nil {
-		return nil, err
+func (s *UserService) FindAllUsers(page int, limit int) ([]*entities.User, int64, error) {
+	if page < 1 {
+		page = 1
 	}
-	return users, nil
+
+	offset := (page - 1) * limit
+
+	users, err := s.repo.FindAll(offset, limit)
+	if err != nil {
+		return nil, -1, err
+	}
+
+	totalUsers, err := s.repo.Count()
+	if err != nil {
+		return nil, -1, err
+	}
+	return users, totalUsers, nil
 }
 
 func (s *UserService) FindUserByID(id uuid.UUID) (*entities.User, error) {
