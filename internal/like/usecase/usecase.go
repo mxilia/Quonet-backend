@@ -137,7 +137,7 @@ func (s *LikeService) FindLikeByID(id uuid.UUID) (*entities.Like, error) {
 	return like, nil
 }
 
-func (s *LikeService) Count(parentType string, ownerID uuid.UUID, parentID uuid.UUID) (int64, error) {
+func (s *LikeService) CountLikes(parentType string, ownerID uuid.UUID, parentID uuid.UUID) (int64, error) {
 	count, err := s.repo.Count(parentType, ownerID, parentID)
 	if err != nil {
 		return -1, err

@@ -13,6 +13,8 @@ type PostUseCase interface {
 	/* Private posts involved */
 	FindPrivatePosts(authorID uuid.UUID, threadID uuid.UUID, title string, page int, limit int) ([]*entities.Post, int64, error)
 	FindPrivatePostByID(id uuid.UUID) (*entities.Post, error)
+	/* General posts */
+	FindNoFilterPostByID(id uuid.UUID) (*entities.Post, error)
 	PatchPost(id uuid.UUID, post *entities.Post) error
 	DeletePost(id uuid.UUID) error
 }

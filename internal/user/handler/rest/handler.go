@@ -46,22 +46,12 @@ func NewHttpUserHandler(userUseCase usecase.UserUseCase, sessionUseCase sessionU
 }
 
 func checkUserForbidAction(c *fiber.Ctx, h *HttpUserHandler, targetID uuid.UUID) error {
-	unparsedUserID := c.Locals("user_id").(string)
-	if unparsedUserID == "" {
-		return appError.ErrUnauthorized
-	}
-
-	userID, err := uuid.Parse(unparsedUserID)
-	if err != nil {
-		return appError.ErrUnauthorized
-	}
-
 	existedUser, err := h.usecase.FindUserByID(targetID)
 	if err != nil {
 		return err
 	}
 
-	if c.Locals("role").(string) == "member" && existedUser.ID != userID {
+	if c.Locals("role").(string) == "member" && existedUser.ID != c.Locals("user_id") {
 		return appError.ErrForbidden
 	}
 	return nil

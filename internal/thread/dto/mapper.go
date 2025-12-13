@@ -4,11 +4,12 @@ import "github.com/mxilia/Quonet-backend/internal/entities"
 
 func ToThreadResponse(thread *entities.Thread) *ThreadResponse {
 	return &ThreadResponse{
-		ID:        thread.ID,
-		Title:     thread.Title,
-		Posts:     thread.Posts,
-		ImageUrl:  thread.ImageUrl,
-		CreatedAt: thread.CreatedAt,
+		ID:          thread.ID,
+		Title:       thread.Title,
+		Description: thread.Description,
+		ImageUrl:    thread.ImageUrl,
+		Posts:       thread.Posts,
+		CreatedAt:   thread.CreatedAt,
 	}
 }
 

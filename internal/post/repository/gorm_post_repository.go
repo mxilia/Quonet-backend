@@ -112,6 +112,14 @@ func (r *GormPostRepository) Count(isPrivate bool, authorID uuid.UUID, threadID 
 	return count, nil
 }
 
+func (r *GormPostRepository) FindNoFilterByID(id uuid.UUID) (*entities.Post, error) {
+	var post entities.Post
+	if err := r.db.First(&post, id).Error; err != nil {
+		return nil, err
+	}
+	return &post, nil
+}
+
 func (r *GormPostRepository) Patch(id uuid.UUID, post *entities.Post) error {
 	result := r.db.Model(&entities.Post{}).Where("id = ?", id).Updates(post)
 	if result.Error != nil {

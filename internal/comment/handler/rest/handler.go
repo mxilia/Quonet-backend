@@ -20,22 +20,12 @@ func NewHttpCommentHandler(usecase usecase.CommentUseCase) *HttpCommentHandler {
 }
 
 func checkCommentForbidAction(c *fiber.Ctx, h *HttpCommentHandler, commentID uuid.UUID) error {
-	userID := c.Locals("user_id").(string)
-	if userID == "" {
-		return appError.ErrUnauthorized
-	}
-
-	authorID, err := uuid.Parse(userID)
-	if err != nil {
-		return appError.ErrUnauthorized
-	}
-
 	existedComment, err := h.usecase.FindCommentByID(commentID)
 	if err != nil {
 		return err
 	}
 
-	if c.Locals("role").(string) == "member" && existedComment.AuthorID != authorID {
+	if c.Locals("role").(string) == "member" && existedComment.AuthorID != c.Locals("user_id") {
 		return appError.ErrForbidden
 	}
 	return nil
@@ -47,7 +37,12 @@ func (h *HttpCommentHandler) CreateComment(c *fiber.Ctx) error {
 		return responses.Error(c, err)
 	}
 
-	comment, err := dto.FromCommentCreateRequest(&req)
+	userID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		return responses.Error(c, appError.ErrUnauthorized)
+	}
+
+	comment, err := dto.FromCommentCreateRequest(userID, &req)
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "invalid create request")
 	}

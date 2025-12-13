@@ -27,9 +27,9 @@ func (h *HttpPostHandler) CreatePost(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "invalid request")
 	}
 
-	authorID, err := uuid.Parse(req.AuthorID)
-	if err != nil {
-		return responses.ErrorWithMessage(c, err, "invalid author id")
+	userID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		return responses.Error(c, appError.ErrUnauthorized)
 	}
 
 	threadID, err := uuid.Parse(req.ThreadID)
@@ -37,7 +37,7 @@ func (h *HttpPostHandler) CreatePost(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "invalid author id")
 	}
 
-	post := &entities.Post{Title: req.Title, AuthorID: authorID, ThreadID: threadID, Content: req.Content, ThumbnailUrl: req.ThumbnailUrl}
+	post := &entities.Post{Title: req.Title, AuthorID: userID, ThreadID: threadID, Content: req.Content, ThumbnailUrl: req.ThumbnailUrl}
 	if err := h.usecase.CreatePost(post); err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to create post")
 	}
@@ -45,22 +45,12 @@ func (h *HttpPostHandler) CreatePost(c *fiber.Ctx) error {
 }
 
 func checkPostForbidAction(c *fiber.Ctx, h *HttpPostHandler, postID uuid.UUID) error {
-	userID := c.Locals("user_id").(string)
-	if userID == "" {
-		return appError.ErrUnauthorized
-	}
-
-	authorID, err := uuid.Parse(userID)
-	if err != nil {
-		return appError.ErrUnauthorized
-	}
-
-	existedPost, err := h.usecase.FindPrivatePostByID(postID)
+	post, err := h.usecase.FindNoFilterPostByID(postID)
 	if err != nil {
 		return err
 	}
 
-	if c.Locals("role").(string) == "member" && existedPost.AuthorID != authorID {
+	if c.Locals("role").(string) == "member" && post.AuthorID != c.Locals("user_id") {
 		return appError.ErrForbidden
 	}
 	return nil

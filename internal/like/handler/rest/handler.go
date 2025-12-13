@@ -21,22 +21,12 @@ func NewHttpLikeHandler(usecase usecase.LikeUseCase) *HttpLikeHandler {
 }
 
 func checkLikeForbidAction(c *fiber.Ctx, h *HttpLikeHandler, likeID uuid.UUID) error {
-	userID := c.Locals("user_id").(string)
-	if userID == "" {
-		return appError.ErrUnauthorized
-	}
-
-	authorID, err := uuid.Parse(userID)
-	if err != nil {
-		return appError.ErrUnauthorized
-	}
-
 	existedLike, err := h.usecase.FindLikeByID(likeID)
 	if err != nil {
 		return err
 	}
 
-	if c.Locals("role").(string) == "member" && existedLike.OwnerID != authorID {
+	if c.Locals("role").(string) == "member" && existedLike.OwnerID != c.Locals("user_id") {
 		return appError.ErrForbidden
 	}
 	return nil
@@ -48,9 +38,9 @@ func (h *HttpLikeHandler) CreateLike(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "invalid request")
 	}
 
-	ownerID, err := uuid.Parse(req.OwnerID)
-	if err != nil {
-		return responses.ErrorWithMessage(c, err, "invalid id")
+	userID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		return responses.Error(c, appError.ErrUnauthorized)
 	}
 
 	parentID, err := uuid.Parse(req.ParentID)
@@ -58,7 +48,7 @@ func (h *HttpLikeHandler) CreateLike(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "invalid id")
 	}
 
-	like := &entities.Like{OwnerID: ownerID, ParentID: parentID, ParentType: req.ParentType, IsPositive: req.IsPositive}
+	like := &entities.Like{OwnerID: userID, ParentID: parentID, ParentType: req.ParentType, IsPositive: req.IsPositive}
 	if err := h.usecase.CreateLike(c.Context(), like); err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to create like")
 	}
@@ -123,7 +113,7 @@ func (h *HttpLikeHandler) FindLikeByID(c *fiber.Ctx) error {
 	return c.JSON(dto.ToLikeResponse(like))
 }
 
-func (h *HttpLikeHandler) Count(c *fiber.Ctx) error {
+func (h *HttpLikeHandler) CountLikes(c *fiber.Ctx) error {
 	parentType := c.Query("parent_type")
 	if parentType != "comment" && parentType != "post" && parentType != "" {
 		return responses.Error(c, appError.ErrInvalidData)
@@ -149,7 +139,7 @@ func (h *HttpLikeHandler) Count(c *fiber.Ctx) error {
 		}
 	}
 
-	count, err := h.usecase.Count(parentType, ownerID, parentID)
+	count, err := h.usecase.CountLikes(parentType, ownerID, parentID)
 	if err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to get like count")
 	}

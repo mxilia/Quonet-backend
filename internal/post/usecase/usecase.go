@@ -79,6 +79,14 @@ func (s *PostService) FindPrivatePostByID(id uuid.UUID) (*entities.Post, error) 
 	return post, nil
 }
 
+func (s *PostService) FindNoFilterPostByID(id uuid.UUID) (*entities.Post, error) {
+	post, err := s.repo.FindNoFilterByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return post, nil
+}
+
 func (s *PostService) PatchPost(id uuid.UUID, post *entities.Post) error {
 	if err := s.repo.Patch(id, post); err != nil {
 		return err

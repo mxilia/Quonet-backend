@@ -31,12 +31,7 @@ func ToCommentResponseList(comments []*entities.Comment) []*CommentResponse {
 	return res
 }
 
-func FromCommentCreateRequest(req *CreateCommentRequest) (*entities.Comment, error) {
-	authorID, err := uuid.Parse(req.AuthorID)
-	if err != nil {
-		return nil, err
-	}
-
+func FromCommentCreateRequest(authorID uuid.UUID, req *CreateCommentRequest) (*entities.Comment, error) {
 	var parentID *uuid.UUID
 	if req.ParentID != "" {
 		id, err := uuid.Parse(req.ParentID)
@@ -52,6 +47,7 @@ func FromCommentCreateRequest(req *CreateCommentRequest) (*entities.Comment, err
 	if err != nil {
 		return nil, err
 	}
+
 	return &entities.Comment{
 		AuthorID: authorID,
 		Content:  req.Content,
