@@ -5,26 +5,26 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	commentUseCase "github.com/mxilia/Quonet-backend/internal/comment/usecase"
+	commentRepository "github.com/mxilia/Quonet-backend/internal/comment/repository"
 	"github.com/mxilia/Quonet-backend/internal/entities"
 	"github.com/mxilia/Quonet-backend/internal/like/repository"
-	postUseCase "github.com/mxilia/Quonet-backend/internal/post/usecase"
+	postRepository "github.com/mxilia/Quonet-backend/internal/post/repository"
 	"github.com/mxilia/Quonet-backend/internal/transaction"
 )
 
 type LikeService struct {
-	repo           repository.LikeRepository
-	txManager      transaction.TransactionManager
-	postUseCase    postUseCase.PostUseCase
-	commentUseCase commentUseCase.CommentUseCase
+	repo        repository.LikeRepository
+	txManager   transaction.TransactionManager
+	postRepo    postRepository.PostRepository
+	commentRepo commentRepository.CommentRepository
 }
 
-func NewLikeService(repo repository.LikeRepository, txManager transaction.TransactionManager, postUseCase postUseCase.PostUseCase, commentUseCase commentUseCase.CommentUseCase) LikeUseCase {
+func NewLikeService(repo repository.LikeRepository, txManager transaction.TransactionManager, postRepository postRepository.PostRepository, commentRepository commentRepository.CommentRepository) LikeUseCase {
 	return &LikeService{
-		repo:           repo,
-		txManager:      txManager,
-		postUseCase:    postUseCase,
-		commentUseCase: commentUseCase,
+		repo:        repo,
+		txManager:   txManager,
+		postRepo:    postRepository,
+		commentRepo: commentRepository,
 	}
 }
 
@@ -41,11 +41,18 @@ func calcUpdateCount(oldPositive bool, newPositive bool) (int64, string) {
 	}
 }
 
-func getUpdateLikeCount(s *LikeService, like *entities.Like) (int64, string, uuid.UUID, error) {
-	likeds, _, err := s.FindLikes(like.ParentType, like.ParentID, like.OwnerID, 0, 1)
-	liked := likeds[0]
+func getUpdateLikeCount(s *LikeService, like *entities.Like, txCtx context.Context) (int64, string, uuid.UUID, error) {
+	likeds, err := s.repo.Find(txCtx, like.ParentType, like.OwnerID, like.ParentID, 0, 1)
+
 	if err != nil {
 		return -1, "", uuid.Nil, err
+	}
+
+	var liked *entities.Like
+	if len(likeds) > 0 {
+		liked = likeds[0]
+	} else {
+		liked = nil
 	}
 
 	if liked == nil {
@@ -63,7 +70,7 @@ func getUpdateLikeCount(s *LikeService, like *entities.Like) (int64, string, uui
 func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error {
 	return s.txManager.Do(ctx, func(txCtx context.Context) error {
 
-		updateCount, status, likedID, err := getUpdateLikeCount(s, like)
+		updateCount, status, likedID, err := getUpdateLikeCount(s, like, txCtx)
 		if err != nil {
 			return err
 		}
@@ -71,26 +78,26 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 		switch like.ParentType {
 
 		case "post":
-			post, err := s.postUseCase.FindPostByID(like.ParentID)
+			post, err := s.postRepo.FindByID(txCtx, like.ParentID)
 			if err != nil {
 				return err
 			}
 			if post == nil {
 				return fmt.Errorf("post does not exist")
 			}
-			if err := s.postUseCase.PatchPost(like.ParentID, &entities.Post{LikeCount: post.LikeCount + updateCount}); err != nil {
+			if err := s.postRepo.Patch(txCtx, like.ParentID, &entities.Post{LikeCount: post.LikeCount + updateCount}); err != nil {
 				return err
 			}
 
 		case "comment":
-			comment, err := s.commentUseCase.FindCommentByID(like.ParentID)
+			comment, err := s.commentRepo.FindByID(txCtx, like.ParentID)
 			if err != nil {
 				return err
 			}
 			if comment == nil {
 				return fmt.Errorf("comment does not exist")
 			}
-			if err := s.commentUseCase.PatchComment(like.ParentID, &entities.Comment{LikeCount: comment.LikeCount + updateCount}); err != nil {
+			if err := s.commentRepo.Patch(txCtx, like.ParentID, &entities.Comment{LikeCount: comment.LikeCount + updateCount}); err != nil {
 				return err
 			}
 
@@ -98,8 +105,11 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 			return fmt.Errorf("invalid parent type")
 		}
 
-		if err := s.repo.Delete(txCtx, likedID); err != nil {
-			return err
+		fmt.Println("liked id:", likedID)
+		if likedID != uuid.Nil {
+			if err := s.repo.Delete(txCtx, likedID); err != nil {
+				return err
+			}
 		}
 		if status == "create" {
 			if err := s.repo.Save(txCtx, like); err != nil {
@@ -117,7 +127,7 @@ func (s *LikeService) FindLikes(parentType string, ownerID uuid.UUID, parentID u
 
 	offset := (page - 1) * limit
 
-	likes, err := s.repo.Find(parentType, ownerID, parentID, offset, limit)
+	likes, err := s.repo.Find(context.TODO(), parentType, ownerID, parentID, offset, limit)
 	if err != nil {
 		return nil, -1, err
 	}

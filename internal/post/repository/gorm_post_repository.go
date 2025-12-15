@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/transaction"
 	"gorm.io/gorm"
 )
 
@@ -48,9 +51,11 @@ func (r *GormPostRepository) Find(authorID uuid.UUID, threadID uuid.UUID, title 
 	return posts, nil
 }
 
-func (r *GormPostRepository) FindByID(id uuid.UUID) (*entities.Post, error) {
+func (r *GormPostRepository) FindByID(ctx context.Context, id uuid.UUID) (*entities.Post, error) {
+	tx := transaction.GetTx(ctx, r.db)
+
 	var post entities.Post
-	if err := r.db.Preload("Author").Where("is_private = ?", false).First(&post, id).Error; err != nil {
+	if err := tx.Preload("Author").Where("is_private = ?", false).First(&post, id).Error; err != nil {
 		return nil, err
 	}
 	return &post, nil
@@ -120,13 +125,12 @@ func (r *GormPostRepository) FindNoFilterByID(id uuid.UUID) (*entities.Post, err
 	return &post, nil
 }
 
-func (r *GormPostRepository) Patch(id uuid.UUID, post *entities.Post) error {
-	result := r.db.Model(&entities.Post{}).Where("id = ?", id).Updates(post)
+func (r *GormPostRepository) Patch(ctx context.Context, id uuid.UUID, post *entities.Post) error {
+	tx := transaction.GetTx(ctx, r.db)
+
+	result := tx.Model(&entities.Post{}).Where("id = ?", id).Updates(post)
 	if result.Error != nil {
 		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
 	}
 	return nil
 }

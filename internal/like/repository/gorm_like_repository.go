@@ -25,12 +25,12 @@ func (r *GormLikeRepository) Save(ctx context.Context, like *entities.Like) erro
 	return nil
 }
 
-func (r *GormLikeRepository) Find(parentType string, ownerID uuid.UUID, parentID uuid.UUID, offset int, limit int) ([]*entities.Like, error) {
-	var query *gorm.DB
-	if parentType == "" {
-		query = r.db
-	} else {
-		query = r.db.Where("parent_type = ?", parentType)
+func (r *GormLikeRepository) Find(ctx context.Context, parentType string, ownerID uuid.UUID, parentID uuid.UUID, offset int, limit int) ([]*entities.Like, error) {
+	tx := transaction.GetTx(ctx, r.db)
+
+	query := tx
+	if parentType != "" {
+		query = query.Where("parent_type = ?", parentType)
 	}
 
 	if ownerID != uuid.Nil {
@@ -64,7 +64,7 @@ func (r *GormLikeRepository) FindByID(id uuid.UUID) (*entities.Like, error) {
 func (r *GormLikeRepository) Count(parentType string, ownerID uuid.UUID, parentID uuid.UUID) (int64, error) {
 	query := r.db.Model(&entities.Like{})
 	if parentType != "" {
-		query = r.db.Where("parent_type = ?", parentType)
+		query = query.Where("parent_type = ?", parentType)
 	}
 
 	if ownerID != uuid.Nil {
@@ -75,11 +75,17 @@ func (r *GormLikeRepository) Count(parentType string, ownerID uuid.UUID, parentI
 		query = query.Where("parent_id = ?", parentID)
 	}
 
-	var count int64
-	if err := query.Count(&count).Error; err != nil {
+	var positiveCount int64
+	if err := query.Session(&gorm.Session{}).Where("is_positive = ?", true).Count(&positiveCount).Error; err != nil {
 		return -1, err
 	}
-	return count, nil
+
+	var negativeCount int64
+	if err := query.Session(&gorm.Session{}).Where("is_positive = ?", false).Count(&negativeCount).Error; err != nil {
+		return -1, err
+	}
+
+	return positiveCount - negativeCount, nil
 }
 
 func (r *GormLikeRepository) Delete(ctx context.Context, id uuid.UUID) error {

@@ -60,7 +60,7 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	commentHandler := commentHandler.NewHttpCommentHandler(commentUseCase)
 
 	likeRepo := likeRepository.NewGormLikeRepository(db)
-	likeUseCase := likeUseCase.NewLikeService(likeRepo, txManager, postUseCase, commentUseCase)
+	likeUseCase := likeUseCase.NewLikeService(likeRepo, txManager, postRepo, commentRepo)
 	likeHandler := likeHandler.NewHttpLikeHandler(likeUseCase)
 
 	/* === Routes === */
@@ -97,7 +97,7 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	likeGroup.Get("/", likeHandler.FindLikes)
 	likeGroup.Get("/:id", likeHandler.FindLikeByID)
-	likeGroup.Get("/count", likeHandler.CountLikes)
+	likeGroup.Get("/count/count", likeHandler.CountLikes)
 
 	commentGroup := api.Group("/comments")
 

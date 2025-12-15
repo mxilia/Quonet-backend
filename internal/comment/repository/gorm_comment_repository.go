@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/internal/transaction"
 	"gorm.io/gorm"
 )
 
@@ -47,9 +50,11 @@ func (r *GormCommentRepository) Find(authorID uuid.UUID, parentID uuid.UUID, roo
 	return comments, nil
 }
 
-func (r *GormCommentRepository) FindByID(id uuid.UUID) (*entities.Comment, error) {
+func (r *GormCommentRepository) FindByID(ctx context.Context, id uuid.UUID) (*entities.Comment, error) {
+	tx := transaction.GetTx(ctx, r.db)
+
 	var comment entities.Comment
-	if err := r.db.Where("id = ?", id).Find(&comment).Error; err != nil {
+	if err := tx.Where("id = ?", id).Find(&comment).Error; err != nil {
 		return nil, err
 	}
 	return &comment, nil
@@ -63,8 +68,10 @@ func (r *GormCommentRepository) Count() (int64, error) {
 	return count, nil
 }
 
-func (r *GormCommentRepository) Patch(id uuid.UUID, comment *entities.Comment) error {
-	result := r.db.Model(&entities.Comment{}).Where("id = ?", id).Updates(comment)
+func (r *GormCommentRepository) Patch(ctx context.Context, id uuid.UUID, comment *entities.Comment) error {
+	tx := transaction.GetTx(ctx, r.db)
+
+	result := tx.Model(&entities.Comment{}).Where("id = ?", id).Updates(comment)
 	if result.Error != nil {
 		return result.Error
 	}

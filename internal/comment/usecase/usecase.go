@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/comment/repository"
 	"github.com/mxilia/Quonet-backend/internal/entities"
@@ -41,7 +43,7 @@ func (s *CommentService) FindComments(authorID uuid.UUID, parentID uuid.UUID, ro
 }
 
 func (s *CommentService) FindCommentByID(id uuid.UUID) (*entities.Comment, error) {
-	comment, err := s.repo.FindByID(id)
+	comment, err := s.repo.FindByID(context.TODO(), id)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +51,7 @@ func (s *CommentService) FindCommentByID(id uuid.UUID) (*entities.Comment, error
 }
 
 func (s *CommentService) PatchComment(id uuid.UUID, comment *entities.Comment) error {
-	if err := s.repo.Patch(id, comment); err != nil {
+	if err := s.repo.Patch(context.TODO(), id, comment); err != nil {
 		return err
 	}
 	return nil

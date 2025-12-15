@@ -61,7 +61,7 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	commentHandler := commentHandler.NewHttpCommentHandler(commentUseCase)
 
 	likeRepo := likeRepository.NewGormLikeRepository(db)
-	likeUseCase := likeUseCase.NewLikeService(likeRepo, txManager, postUseCase, commentUseCase)
+	likeUseCase := likeUseCase.NewLikeService(likeRepo, txManager, postRepo, commentRepo)
 	likeHandler := likeHandler.NewHttpLikeHandler(likeUseCase)
 
 	/* === Routes === */
@@ -81,25 +81,25 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	userGroup := api.Group("/users")
 
-	userGroup.Patch("/:id", middleware.RequireUser(), userHandler.PatchUser)
-	userGroup.Delete("/:id", middleware.RequireUser(), userHandler.DeleteUser)
+	userGroup.Patch("/:id", userHandler.PatchUser)
+	userGroup.Delete("/:id", userHandler.DeleteUser)
 
 	postGroup := api.Group("/posts")
 
 	postGroup.Post("/", postHandler.CreatePost)
-	postGroup.Get("/private", middleware.RequireUser(), postHandler.FindPrivatePosts)
-	postGroup.Get("/private/:id", middleware.RequireUser(), postHandler.FindPrivatePostByID)
-	postGroup.Patch("/:id", middleware.RequireUser(), postHandler.PatchPost)
-	postGroup.Delete("/:id", middleware.RequireUser(), postHandler.DeletePost)
+	postGroup.Get("/private", postHandler.FindPrivatePosts)
+	postGroup.Get("/private/:id", postHandler.FindPrivatePostByID)
+	postGroup.Patch("/:id", postHandler.PatchPost)
+	postGroup.Delete("/:id", postHandler.DeletePost)
 
 	likeGroup := api.Group("/likes")
 
 	likeGroup.Post("/", likeHandler.CreateLike)
-	likeGroup.Delete("/:id", middleware.RequireUser(), likeHandler.DeleteLike)
+	// likeGroup.Delete("/:id", middleware.RequireUser(), likeHandler.DeleteLike)
 
 	commentGroup := api.Group("/comments")
 
 	commentGroup.Post("/", commentHandler.CreateComment)
-	commentGroup.Patch("/:id", middleware.RequireUser(), commentHandler.PatchComment)
-	commentGroup.Delete("/:id", middleware.RequireUser(), commentHandler.DeleteComment)
+	commentGroup.Patch("/:id", commentHandler.PatchComment)
+	commentGroup.Delete("/:id", commentHandler.DeleteComment)
 }

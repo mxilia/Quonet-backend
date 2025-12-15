@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/entities"
 	"github.com/mxilia/Quonet-backend/internal/post/repository"
@@ -43,7 +45,7 @@ func (s *PostService) FindPosts(authorID uuid.UUID, threadID uuid.UUID, title st
 }
 
 func (s *PostService) FindPostByID(id uuid.UUID) (*entities.Post, error) {
-	post, err := s.repo.FindByID(id)
+	post, err := s.repo.FindByID(context.TODO(), id)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +90,7 @@ func (s *PostService) FindNoFilterPostByID(id uuid.UUID) (*entities.Post, error)
 }
 
 func (s *PostService) PatchPost(id uuid.UUID, post *entities.Post) error {
-	if err := s.repo.Patch(id, post); err != nil {
+	if err := s.repo.Patch(context.TODO(), id, post); err != nil {
 		return err
 	}
 	return nil
