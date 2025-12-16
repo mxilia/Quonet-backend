@@ -14,6 +14,7 @@ func ToPostResponse(post *entities.Post) *PostResponse {
 		LikeCount:    post.LikeCount,
 
 		Author:   post.Author,
+		Thread:   post.Thread,
 		Likes:    post.Likes,
 		Comments: post.Comments,
 

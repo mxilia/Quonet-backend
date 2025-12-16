@@ -20,6 +20,7 @@ type PostResponse struct {
 	LikeCount    int64     `json:"like_count"`
 
 	Author   entities.User      `json:"author"`
+	Thread   entities.Thread    `json:"thread"`
 	Likes    []entities.Like    `json:"like"`
 	Comments []entities.Comment `json:"comments"`
 

@@ -18,6 +18,7 @@ type Post struct {
 	LikeCount    int64     `gorm:"default:0" json:"like_count"`
 
 	Author   User      `gorm:"foreignKey:AuthorID;constraint:OnDelete:CASCADE" json:"author"`
+	Thread   Thread    `gorm:"foreignKey:ThreadID;constraint:OnDelete:CASCADE" json:"thread"`
 	Likes    []Like    `gorm:"polymorphic:Parent;polymorphicValue:post;constraint:OnDelete:CASCADE" json:"likes"`
 	Comments []Comment `gorm:"foreignKey:RootID;constraint:OnDelete:CASCADE" json:"comments"`
 

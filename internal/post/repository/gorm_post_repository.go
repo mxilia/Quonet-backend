@@ -26,7 +26,7 @@ func (r *GormPostRepository) Save(post *entities.Post) error {
 
 /* No private posts involved */
 func (r *GormPostRepository) Find(authorID uuid.UUID, threadID uuid.UUID, title string, offset int, limit int) ([]*entities.Post, error) {
-	query := r.db.Preload("Author").Where("is_private = ?", false)
+	query := r.db.Preload("Author").Preload("Thread").Where("is_private = ?", false)
 	if authorID != uuid.Nil {
 		query = query.Where("author_id = ?", authorID)
 	}
@@ -55,7 +55,7 @@ func (r *GormPostRepository) FindByID(ctx context.Context, id uuid.UUID) (*entit
 	tx := transaction.GetTx(ctx, r.db)
 
 	var post entities.Post
-	if err := tx.Preload("Author").Where("is_private = ?", false).First(&post, id).Error; err != nil {
+	if err := tx.Preload("Author").Preload("Thread").Where("is_private = ?", false).First(&post, id).Error; err != nil {
 		return nil, err
 	}
 	return &post, nil
@@ -63,7 +63,7 @@ func (r *GormPostRepository) FindByID(ctx context.Context, id uuid.UUID) (*entit
 
 /* Private posts involved */
 func (r *GormPostRepository) FindPrivate(authorID uuid.UUID, threadID uuid.UUID, title string, offset int, limit int) ([]*entities.Post, error) {
-	query := r.db.Preload("Author").Where("is_private = ?", true)
+	query := r.db.Preload("Author").Preload("Thread").Where("is_private = ?", true)
 	if authorID != uuid.Nil {
 		query = query.Where("author_id = ?", authorID)
 	}
@@ -90,7 +90,7 @@ func (r *GormPostRepository) FindPrivate(authorID uuid.UUID, threadID uuid.UUID,
 
 func (r *GormPostRepository) FindPrivateByID(id uuid.UUID) (*entities.Post, error) {
 	var post entities.Post
-	if err := r.db.Where("is_private = ?", true).First(&post, id).Error; err != nil {
+	if err := r.db.Preload("Author").Preload("Thread").Where("is_private = ?", true).First(&post, id).Error; err != nil {
 		return nil, err
 	}
 	return &post, nil
