@@ -26,8 +26,9 @@ func ToLikeCountResponse(count int64) *LikeCountResponse {
 	}
 }
 
-func ToIsLikedResponse(isLiked bool) *IsLikedResponse {
-	return &IsLikedResponse{
-		IsLiked: isLiked,
+func ToLikeStateResponse(IsLiked bool, IsLikePositive bool) *LikeStateResponse {
+	return &LikeStateResponse{
+		IsLiked:        IsLiked,
+		IsLikePositive: IsLikePositive,
 	}
 }

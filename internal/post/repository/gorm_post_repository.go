@@ -61,6 +61,32 @@ func (r *GormPostRepository) FindByID(ctx context.Context, id uuid.UUID) (*entit
 	return &post, nil
 }
 
+func (r *GormPostRepository) FindTopLiked(authorID uuid.UUID, threadID uuid.UUID, title string, limit int) ([]*entities.Post, error) {
+	query := r.db.Preload("Author").Preload("Thread").Where("is_private = ?", false)
+	if authorID != uuid.Nil {
+		query = query.Where("author_id = ?", authorID)
+	}
+
+	if threadID != uuid.Nil {
+		query = query.Where("thread_id = ?", threadID)
+	}
+
+	if title != "" {
+		query = query.Where("title = ?", title)
+	}
+
+	var postsValue []entities.Post
+	if err := query.Limit(limit).Order("like_count").Find(&postsValue).Error; err != nil {
+		return nil, err
+	}
+
+	posts := make([]*entities.Post, len(postsValue))
+	for i := range postsValue {
+		posts[i] = &postsValue[i]
+	}
+	return posts, nil
+}
+
 /* Private posts involved */
 func (r *GormPostRepository) FindPrivate(authorID uuid.UUID, threadID uuid.UUID, title string, offset int, limit int) ([]*entities.Post, error) {
 	query := r.db.Preload("Author").Preload("Thread").Where("is_private = ?", true)

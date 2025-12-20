@@ -113,6 +113,45 @@ func (h *HttpLikeHandler) FindLikeByID(c *fiber.Ctx) error {
 	return c.JSON(dto.ToLikeResponse(like))
 }
 
+func (h *HttpLikeHandler) GetLikeState(c *fiber.Ctx) error {
+	ownerID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		return responses.Error(c, appError.ErrUnauthorized)
+	}
+
+	parentType := c.Query("parent_type")
+	if parentType != "comment" && parentType != "post" {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+
+	unparsedParentID := c.Query("parent_id")
+	if unparsedParentID == "" {
+		return responses.Error(c, appError.ErrInvalidData)
+	}
+
+	parentID, err := uuid.Parse(unparsedParentID)
+	if err != nil {
+		return responses.ErrorWithMessage(c, appError.ErrInvalidData, "invalid parent id")
+	}
+
+	likes, _, err := h.usecase.FindLikes(parentType, ownerID, parentID, 1, 1)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+
+	var (
+		IsLikePositive = false
+		IsLiked        = false
+	)
+
+	if len(likes) > 0 {
+		IsLiked = true
+		IsLikePositive = likes[0].IsPositive
+	}
+
+	return c.JSON(dto.ToLikeStateResponse(IsLiked, IsLikePositive))
+}
+
 func (h *HttpLikeHandler) CountLikes(c *fiber.Ctx) error {
 	parentType := c.Query("parent_type")
 	if parentType != "comment" && parentType != "post" && parentType != "" {

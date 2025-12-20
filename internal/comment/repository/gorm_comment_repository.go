@@ -32,14 +32,16 @@ func (r *GormCommentRepository) Find(authorID uuid.UUID, parentID uuid.UUID, roo
 
 	if parentID != uuid.Nil {
 		query = query.Where("parent_id = ?", parentID)
+	} else {
+		query = query.Where("parent_id IS NULL")
 	}
 
 	if rootID != uuid.Nil {
-		query = query.Where("root_id = ?", parentID)
+		query = query.Where("root_id = ?", rootID)
 	}
 
 	var commentsValue []entities.Comment
-	if err := query.Limit(limit).Offset(offset).Find(&commentsValue).Error; err != nil {
+	if err := query.Preload("Author").Limit(limit).Offset(offset).Find(&commentsValue).Error; err != nil {
 		return nil, err
 	}
 
@@ -54,15 +56,30 @@ func (r *GormCommentRepository) FindByID(ctx context.Context, id uuid.UUID) (*en
 	tx := transaction.GetTx(ctx, r.db)
 
 	var comment entities.Comment
-	if err := tx.Where("id = ?", id).Find(&comment).Error; err != nil {
+	if err := tx.Preload("Author").Where("id = ?", id).Find(&comment).Error; err != nil {
 		return nil, err
 	}
 	return &comment, nil
 }
 
-func (r *GormCommentRepository) Count() (int64, error) {
+func (r *GormCommentRepository) Count(authorID uuid.UUID, parentID uuid.UUID, rootID uuid.UUID) (int64, error) {
+	query := r.db.Model(&entities.Comment{})
+	if authorID != uuid.Nil {
+		query = query.Where("author_id = ?", authorID)
+	}
+
+	if parentID != uuid.Nil {
+		query = query.Where("parent_id = ?", parentID)
+	} else {
+		query = query.Where("parent_id IS NULL")
+	}
+
+	if rootID != uuid.Nil {
+		query = query.Where("root_id = ?", rootID)
+	}
+
 	var count int64
-	if err := r.db.Model(&entities.Comment{}).Count(&count).Error; err != nil {
+	if err := query.Count(&count).Error; err != nil {
 		return -1, err
 	}
 	return count, nil
@@ -74,9 +91,6 @@ func (r *GormCommentRepository) Patch(ctx context.Context, id uuid.UUID, comment
 	result := tx.Model(&entities.Comment{}).Where("id = ?", id).Updates(comment)
 	if result.Error != nil {
 		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return gorm.ErrRecordNotFound
 	}
 	return nil
 }

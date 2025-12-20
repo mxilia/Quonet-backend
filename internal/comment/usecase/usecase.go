@@ -35,7 +35,7 @@ func (s *CommentService) FindComments(authorID uuid.UUID, parentID uuid.UUID, ro
 		return nil, -1, err
 	}
 
-	totalComments, err := s.repo.Count()
+	totalComments, err := s.repo.Count(authorID, parentID, rootID)
 	if err != nil {
 		return nil, -1, err
 	}

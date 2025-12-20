@@ -194,6 +194,41 @@ func (h *HttpPostHandler) FindPrivatePostByID(c *fiber.Ctx) error {
 	return c.JSON(dto.ToPostResponse(post))
 }
 
+func (h *HttpPostHandler) FindTopLikedPosts(c *fiber.Ctx) error {
+	limit := c.QueryInt("limit", 3)
+
+	authorID := uuid.Nil
+	queryAuthorID := c.Query("author_id")
+	if queryAuthorID != "" {
+		var err error
+		authorID, err = uuid.Parse(queryAuthorID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, err, "invalid author id")
+		}
+	}
+
+	threadID := uuid.Nil
+	queryThreadID := c.Query("thread_id")
+	if queryThreadID != "" {
+		var err error
+		threadID, err = uuid.Parse(queryThreadID)
+		if err != nil {
+			return responses.ErrorWithMessage(c, err, "invalid thread id")
+		}
+	}
+
+	title := c.Query("title")
+	if title != "" {
+		title = format.DashToSpace(title)
+	}
+
+	posts, err := h.usecase.FindTopLikedPosts(authorID, threadID, title, limit)
+	if err != nil {
+		return responses.Error(c, err)
+	}
+	return c.JSON(dto.ToPostResponseList(posts))
+}
+
 func (h *HttpPostHandler) PatchPost(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {

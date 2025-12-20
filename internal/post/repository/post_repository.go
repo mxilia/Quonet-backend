@@ -15,6 +15,7 @@ type PostRepository interface {
 	/* Private posts involved */
 	FindPrivate(authorID uuid.UUID, threadID uuid.UUID, title string, offset int, limit int) ([]*entities.Post, error)
 	FindPrivateByID(id uuid.UUID) (*entities.Post, error)
+	FindTopLiked(authorID uuid.UUID, threadID uuid.UUID, title string, limit int) ([]*entities.Post, error)
 	Count(isPrivate bool, authorID uuid.UUID, threadID uuid.UUID, title string) (int64, error)
 	FindNoFilterByID(id uuid.UUID) (*entities.Post, error)
 	Patch(ctx context.Context, id uuid.UUID, post *entities.Post) error

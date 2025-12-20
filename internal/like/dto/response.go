@@ -14,6 +14,7 @@ type LikeCountResponse struct {
 	Count int64 `json:"like_count"`
 }
 
-type IsLikedResponse struct {
-	IsLiked bool `json:"is_liked"`
+type LikeStateResponse struct {
+	IsLiked        bool `json:"is_liked"`
+	IsLikePositive bool `json:"is_like_positive"`
 }

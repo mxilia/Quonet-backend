@@ -7,8 +7,6 @@ import (
 	"github.com/mxilia/Quonet-backend/internal/entities"
 )
 
-/* Will modify this */
-
 type PostResponse struct {
 	ID           uuid.UUID `json:"id"`
 	Title        string    `json:"title"`

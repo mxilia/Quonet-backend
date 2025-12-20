@@ -95,6 +95,7 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	likeGroup := api.Group("/likes")
 
 	likeGroup.Post("/", likeHandler.CreateLike)
+	likeGroup.Get("/attributes/state", likeHandler.GetLikeState)
 	// likeGroup.Delete("/:id", middleware.RequireUser(), likeHandler.DeleteLike)
 
 	commentGroup := api.Group("/comments")

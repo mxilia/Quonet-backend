@@ -92,12 +92,13 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	postGroup.Get("/", postHandler.FindPosts)
 	postGroup.Get("/:id", postHandler.FindPostByID)
+	postGroup.Get("/top/like", postHandler.FindTopLikedPosts)
 
 	likeGroup := api.Group("/likes")
 
 	likeGroup.Get("/", likeHandler.FindLikes)
 	likeGroup.Get("/:id", likeHandler.FindLikeByID)
-	likeGroup.Get("/count/count", likeHandler.CountLikes)
+	likeGroup.Get("/attributes/count", likeHandler.CountLikes)
 
 	commentGroup := api.Group("/comments")
 

@@ -52,6 +52,18 @@ func (s *PostService) FindPostByID(id uuid.UUID) (*entities.Post, error) {
 	return post, nil
 }
 
+func (s *PostService) FindTopLikedPosts(authorID uuid.UUID, threadID uuid.UUID, title string, limit int) ([]*entities.Post, error) {
+	if limit < 0 {
+		limit = 0
+	}
+
+	posts, err := s.repo.FindTopLiked(authorID, threadID, title, limit)
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
+}
+
 /* Private posts involved */
 func (s *PostService) FindPrivatePosts(authorID uuid.UUID, threadID uuid.UUID, title string, page int, limit int) ([]*entities.Post, int64, error) {
 	if page < 1 {
