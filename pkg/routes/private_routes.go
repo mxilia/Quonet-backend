@@ -28,6 +28,10 @@ import (
 	userRepository "github.com/mxilia/Quonet-backend/internal/user/repository"
 	userUseCase "github.com/mxilia/Quonet-backend/internal/user/usecase"
 
+	announcementHandler "github.com/mxilia/Quonet-backend/internal/announcement/handler/rest"
+	announcementRepository "github.com/mxilia/Quonet-backend/internal/announcement/repository"
+	announcementUseCase "github.com/mxilia/Quonet-backend/internal/announcement/usecase"
+
 	"github.com/mxilia/Quonet-backend/pkg/config"
 	"github.com/mxilia/Quonet-backend/pkg/middleware"
 	"gorm.io/gorm"
@@ -63,6 +67,10 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	likeRepo := likeRepository.NewGormLikeRepository(db)
 	likeUseCase := likeUseCase.NewLikeService(likeRepo, txManager, postRepo, commentRepo)
 	likeHandler := likeHandler.NewHttpLikeHandler(likeUseCase)
+
+	announcementRepo := announcementRepository.NewGormAnnouncementRepository(db)
+	announcementUseCase := announcementUseCase.NewAnnouncementService(announcementRepo)
+	announcementHandler := announcementHandler.NewHttpAnnouncementHandler(announcementUseCase)
 
 	/* === Routes === */
 
@@ -103,4 +111,9 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	commentGroup.Post("/", commentHandler.CreateComment)
 	commentGroup.Patch("/:id", commentHandler.PatchComment)
 	commentGroup.Delete("/:id", commentHandler.DeleteComment)
+
+	announcementGroup := api.Group("/announcements")
+
+	announcementGroup.Post("/", middleware.RequireAdmin(), announcementHandler.SaveAnnouncement)
+	announcementGroup.Delete("/:id", middleware.RequireAdmin(), announcementHandler.DeleteAnnouncement)
 }

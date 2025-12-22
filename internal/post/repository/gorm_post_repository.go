@@ -76,7 +76,7 @@ func (r *GormPostRepository) FindTopLiked(authorID uuid.UUID, threadID uuid.UUID
 	}
 
 	var postsValue []entities.Post
-	if err := query.Limit(limit).Order("like_count").Find(&postsValue).Error; err != nil {
+	if err := query.Limit(limit).Order("like_count DESC").Find(&postsValue).Error; err != nil {
 		return nil, err
 	}
 

@@ -29,6 +29,10 @@ import (
 	likeRepository "github.com/mxilia/Quonet-backend/internal/like/repository"
 	likeUseCase "github.com/mxilia/Quonet-backend/internal/like/usecase"
 
+	announcementHandler "github.com/mxilia/Quonet-backend/internal/announcement/handler/rest"
+	announcementRepository "github.com/mxilia/Quonet-backend/internal/announcement/repository"
+	announcementUseCase "github.com/mxilia/Quonet-backend/internal/announcement/usecase"
+
 	"github.com/mxilia/Quonet-backend/pkg/config"
 )
 
@@ -62,6 +66,10 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	likeRepo := likeRepository.NewGormLikeRepository(db)
 	likeUseCase := likeUseCase.NewLikeService(likeRepo, txManager, postRepo, commentRepo)
 	likeHandler := likeHandler.NewHttpLikeHandler(likeUseCase)
+
+	announcementRepo := announcementRepository.NewGormAnnouncementRepository(db)
+	announcementUseCase := announcementUseCase.NewAnnouncementService(announcementRepo)
+	announcementHandler := announcementHandler.NewHttpAnnouncementHandler(announcementUseCase)
 
 	/* === Routes === */
 
@@ -104,4 +112,8 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	commentGroup.Get("/", commentHandler.FindComments)
 	commentGroup.Get("/:id", commentHandler.FindCommentByID)
+
+	announcementGroup := api.Group("/announcements")
+
+	announcementGroup.Get("/", announcementHandler.FindAnnouncements)
 }

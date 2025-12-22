@@ -84,7 +84,7 @@ func (s *UserService) FindUserByEmail(email string) (*entities.User, error) {
 func (s *UserService) PatchUser(id uuid.UUID, user *entities.User) error {
 	if user.Handler != "" {
 		registeredUser, err := s.FindUserByHandler(user.Handler)
-		if err != nil {
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 		if registeredUser != nil {
