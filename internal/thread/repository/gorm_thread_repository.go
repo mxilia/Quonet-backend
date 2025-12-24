@@ -21,9 +21,15 @@ func (r *GormThreadRepository) Save(thread *entities.Thread) error {
 	return nil
 }
 
-func (r *GormThreadRepository) FindAll(offset int, limit int) ([]*entities.Thread, error) {
+func (r *GormThreadRepository) Find(title string, offset int, limit int) ([]*entities.Thread, error) {
+	query := r.db.Limit(limit).Offset(offset)
+
+	if title != "" {
+		query = query.Where("title ILIKE ?", "%"+title+"%")
+	}
+
 	var threadsValue []entities.Thread
-	if err := r.db.Limit(limit).Offset(offset).Find(&threadsValue).Error; err != nil {
+	if err := query.Find(&threadsValue).Error; err != nil {
 		return nil, err
 	}
 

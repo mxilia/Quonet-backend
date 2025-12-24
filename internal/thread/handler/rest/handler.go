@@ -9,6 +9,7 @@ import (
 	"github.com/mxilia/Quonet-backend/internal/thread/dto"
 	"github.com/mxilia/Quonet-backend/internal/thread/usecase"
 	"github.com/mxilia/Quonet-backend/pkg/responses"
+	"github.com/mxilia/Quonet-backend/utils/format"
 )
 
 type HttpThreadHandler struct {
@@ -25,7 +26,7 @@ func (h *HttpThreadHandler) CreateThread(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "invalid request")
 	}
 
-	thread := &entities.Thread{Title: req.Title}
+	thread := &entities.Thread{Title: req.Title, Description: req.Description, ImageUrl: req.ImageUrl}
 	if err := h.threadUseCase.CreateThread(thread); err != nil {
 		return responses.Error(c, err)
 	}
@@ -33,13 +34,18 @@ func (h *HttpThreadHandler) CreateThread(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(dto.ToThreadResponse(thread))
 }
 
-func (h *HttpThreadHandler) FindAllThreads(c *fiber.Ctx) error {
+func (h *HttpThreadHandler) FindThreads(c *fiber.Ctx) error {
 	var (
+		title = c.Query("title")
 		page  = c.QueryInt("page", 1)
 		limit = 5
 	)
 
-	threads, totalThreads, err := h.threadUseCase.FindAllThreads(page, limit)
+	if title != "" {
+		title = format.DashToSpace(title)
+	}
+
+	threads, totalThreads, err := h.threadUseCase.FindThreads(title, page, limit)
 	if err != nil {
 		return responses.Error(c, err)
 	}

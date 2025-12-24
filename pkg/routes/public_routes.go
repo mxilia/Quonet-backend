@@ -86,7 +86,7 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 
 	threadGroup := api.Group("/threads")
 
-	threadGroup.Get("/", threadHandler.FindAllThreads)
+	threadGroup.Get("/", threadHandler.FindThreads)
 	threadGroup.Get("/:id", threadHandler.FindThreadByID)
 
 	userGroup := api.Group("/users")

@@ -12,6 +12,7 @@ type UserResponse struct {
 	Handler     string    `json:"handler"`
 	Email       string    `json:"email"`
 	ProfileUrl  string    `json:"profile_url"`
+	Bio         string    `json:"bio"`
 	Role        string    `json:"role"`
 	IsBanned    bool      `json:"is_banned"`
 	BannedUntil time.Time `json:"banned_until"`
@@ -21,11 +22,4 @@ type UserResponse struct {
 	Likes    []entities.Like    `json:"likes"`
 
 	CreatedAt time.Time `json:"created_at"`
-}
-
-type LoginResponse struct {
-	User UserResponse `json:"user"`
-
-	AccessToken          string    `json:"access_token"`
-	AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
 }

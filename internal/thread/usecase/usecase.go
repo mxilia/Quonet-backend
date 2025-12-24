@@ -21,14 +21,14 @@ func (s *ThreadService) CreateThread(thread *entities.Thread) error {
 	return nil
 }
 
-func (s *ThreadService) FindAllThreads(page int, limit int) ([]*entities.Thread, int64, error) {
+func (s *ThreadService) FindThreads(title string, page int, limit int) ([]*entities.Thread, int64, error) {
 	if page < 1 {
 		page = 1
 	}
 
 	offset := (page - 1) * limit
 
-	threads, err := s.repo.FindAll(offset, limit)
+	threads, err := s.repo.Find(title, offset, limit)
 	if err != nil {
 		return nil, -1, err
 	}
