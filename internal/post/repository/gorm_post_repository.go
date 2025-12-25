@@ -17,8 +17,9 @@ func NewGormPostRepository(db *gorm.DB) PostRepository {
 	return &GormPostRepository{db: db}
 }
 
-func (r *GormPostRepository) Save(post *entities.Post) error {
-	if err := r.db.Create(post).Error; err != nil {
+func (r *GormPostRepository) Save(ctx context.Context, post *entities.Post) error {
+	tx := transaction.GetTx(ctx, r.db)
+	if err := tx.Create(post).Error; err != nil {
 		return err
 	}
 	return nil
@@ -161,8 +162,10 @@ func (r *GormPostRepository) Patch(ctx context.Context, id uuid.UUID, post *enti
 	return nil
 }
 
-func (r *GormPostRepository) Delete(id uuid.UUID) error {
-	result := r.db.Delete(&entities.Post{}, id)
+func (r *GormPostRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	tx := transaction.GetTx(ctx, r.db)
+
+	result := tx.Delete(&entities.Post{}, id)
 	if result.Error != nil {
 		return result.Error
 	}

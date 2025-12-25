@@ -28,34 +28,38 @@ func setupOwner(db *gorm.DB) error {
 	return nil
 }
 
-func setupDependencies(env string) (*gorm.DB, *config.Config, error) {
+func setupDependencies(env string) (*gorm.DB, *database.StorageService, *config.Config, error) {
 	cfg := config.GetConfig(env)
 
 	db, err := database.Connect(cfg)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
+
+	storageService := database.ConnectStorage(cfg)
 
 	if env == "dev" {
 		//db.Migrator().DropTable(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}, &entities.Comment{}, &entities.Session{}, &entities.Announcement{})
 	}
 
 	if err := db.AutoMigrate(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}, &entities.Comment{}, &entities.Session{}, &entities.Announcement{}); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	if err := setupOwner(db); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	return db, cfg, nil
+	return db, storageService, cfg, nil
 }
 
-func setupRestServer(db *gorm.DB, cfg *config.Config) (*fiber.App, error) {
-	app := fiber.New()
+func setupRestServer(db *gorm.DB, supabase *database.StorageService, cfg *config.Config) (*fiber.App, error) {
+	app := fiber.New(fiber.Config{
+		BodyLimit: 5 * 1024 * 1024,
+	})
 	middleware.FiberMiddleware(app, cfg)
-	routes.RegisterPublicRoutes(app, db, cfg)
-	routes.RegisterPrivateRoutes(app, db, cfg)
+	routes.RegisterPublicRoutes(app, db, supabase, cfg)
+	routes.RegisterPrivateRoutes(app, db, supabase, cfg)
 	routes.RegisterNotFoundRoute(app)
 	return app, nil
 }

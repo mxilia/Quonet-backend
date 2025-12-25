@@ -28,6 +28,9 @@ func (s *UserService) GoogleUserEntry(user *entities.User) (*entities.User, erro
 		return nil, err
 	}
 	if registeredUser != nil {
+		if err := s.repo.Patch(registeredUser.ID, &entities.User{ProfileUrl: user.ProfileUrl}); err != nil {
+			return nil, err
+		}
 		return registeredUser, nil
 	}
 
@@ -88,7 +91,10 @@ func (s *UserService) PatchUser(id uuid.UUID, user *entities.User) error {
 			return err
 		}
 		if registeredUser != nil {
-			return gorm.ErrDuplicatedKey
+			return appError.ErrAlreadyExists
+		}
+		if !entities.IsValidUsername(user.Handler) {
+			return appError.ErrInvalidData
 		}
 	}
 

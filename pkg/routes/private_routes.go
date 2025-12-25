@@ -33,11 +33,12 @@ import (
 	announcementUseCase "github.com/mxilia/Quonet-backend/internal/announcement/usecase"
 
 	"github.com/mxilia/Quonet-backend/pkg/config"
+	"github.com/mxilia/Quonet-backend/pkg/database"
 	"github.com/mxilia/Quonet-backend/pkg/middleware"
 	"gorm.io/gorm"
 )
 
-func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
+func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, storageService *database.StorageService, cfg *config.Config) {
 
 	/* === Dependencies Wiring === */
 
@@ -57,8 +58,8 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, cfg *config.Config) {
 	sessionHandler := sessionHandler.NewHttpSessionHandler(sessionUseCase, userUseCase, cfg)
 
 	postRepo := postRepository.NewGormPostRepository(db)
-	postUseCase := postUseCase.NewPostService(postRepo)
-	postHandler := postHandler.NewHttpPostHandler(postUseCase)
+	postUseCase := postUseCase.NewPostService(postRepo, storageService, txManager)
+	postHandler := postHandler.NewHttpPostHandler(postUseCase, storageService)
 
 	commentRepo := commentRepository.NewGormCommentRepository(db)
 	commentUseCase := commentUseCase.NewCommentService(commentRepo)

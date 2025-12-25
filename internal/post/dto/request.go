@@ -1,11 +1,9 @@
 package dto
 
 type CreatePostRequest struct {
-	Title        string `json:"title" validate:"required"`
-	AuthorID     string `json:"author_id" validate:"required"`
-	ThreadID     string `json:"thread_id" validate:"required"`
-	Content      string `json:"content" validate:"required"`
-	ThumbnailUrl string `json:"thumbnail_url,omitempty"`
+	Title    string `json:"title" validate:"required"`
+	ThreadID string `json:"thread_id" validate:"required"`
+	Content  string `json:"content" validate:"required"`
 }
 
 type PostPatchRequest struct {

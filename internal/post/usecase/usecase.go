@@ -2,25 +2,54 @@ package usecase
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"path/filepath"
 
 	"github.com/google/uuid"
 	"github.com/mxilia/Quonet-backend/internal/entities"
 	"github.com/mxilia/Quonet-backend/internal/post/repository"
+	"github.com/mxilia/Quonet-backend/internal/transaction"
+	"github.com/mxilia/Quonet-backend/pkg/database"
 )
 
 type PostService struct {
-	repo repository.PostRepository
+	repo           repository.PostRepository
+	storageService *database.StorageService
+	txManager      transaction.TransactionManager
 }
 
-func NewPostService(repo repository.PostRepository) PostUseCase {
-	return &PostService{repo: repo}
-}
-
-func (s *PostService) CreatePost(post *entities.Post) error {
-	if err := s.repo.Save(post); err != nil {
-		return err
+func NewPostService(repo repository.PostRepository, storageService *database.StorageService, txManager transaction.TransactionManager) PostUseCase {
+	return &PostService{
+		repo:           repo,
+		storageService: storageService,
+		txManager:      txManager,
 	}
-	return nil
+}
+
+func (s *PostService) CreatePost(ctx context.Context, post *entities.Post, file io.Reader, filename string, contentType string) error {
+	if file != nil {
+		return s.txManager.Do(ctx, func(txCtx context.Context) error {
+
+			var (
+				ext        = filepath.Ext(filename)
+				uploadPath = fmt.Sprintf("thumbnails/%s%s", uuid.New().String(), ext)
+			)
+
+			post.ThumbnailUrl = uploadPath
+
+			if err := s.repo.Save(txCtx, post); err != nil {
+				return err
+			}
+			fmt.Println("before supa")
+			if err := s.storageService.UploadFile(uploadPath, file, contentType); err != nil {
+				return err
+			}
+			return nil
+		})
+	}
+
+	return s.repo.Save(ctx, post)
 }
 
 /* No private posts involved */
@@ -108,8 +137,26 @@ func (s *PostService) PatchPost(id uuid.UUID, post *entities.Post) error {
 	return nil
 }
 
-func (s *PostService) DeletePost(id uuid.UUID) error {
-	if err := s.repo.Delete(id); err != nil {
+func (s *PostService) DeletePost(ctx context.Context, id uuid.UUID) error {
+	post, err := s.repo.FindNoFilterByID(id)
+	if err != nil {
+		return err
+	}
+
+	if post.ThumbnailUrl != "" {
+		return s.txManager.Do(ctx, func(txCtx context.Context) error {
+			if err := s.repo.Delete(ctx, id); err != nil {
+				return err
+			}
+
+			if err := s.storageService.DeleteFile(post.ThumbnailUrl); err != nil {
+				return err
+			}
+			return nil
+		})
+	}
+
+	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
 	return nil

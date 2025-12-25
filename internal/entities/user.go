@@ -1,11 +1,18 @@
 package entities
 
 import (
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+var usernameRegex = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{2,15}$`)
+
+func IsValidUsername(username string) bool {
+	return usernameRegex.MatchString(username)
+}
 
 type User struct {
 	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
@@ -30,7 +37,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 
 	}
 	if u.Handler == "" {
-		u.Handler = "user-" + uuid.NewString()[:8]
+		u.Handler = "user_" + uuid.NewString()[:8]
 	}
 	return nil
 }

@@ -1,15 +1,27 @@
 package dto
 
-import "github.com/mxilia/Quonet-backend/internal/entities"
+import (
+	"github.com/mxilia/Quonet-backend/internal/entities"
+	"github.com/mxilia/Quonet-backend/pkg/database"
+)
 
-func ToPostResponse(post *entities.Post) *PostResponse {
+func ToPostResponse(post *entities.Post, storageService *database.StorageService) *PostResponse {
+	ThumbnailUrl := post.ThumbnailUrl
+	if ThumbnailUrl != "" {
+		var err error
+		ThumbnailUrl, err = storageService.GetSignedURL(ThumbnailUrl)
+		if err != nil {
+			ThumbnailUrl = ""
+		}
+	}
+
 	return &PostResponse{
 		ID:           post.ID,
 		Title:        post.Title,
 		AuthorID:     post.AuthorID,
 		ThreadID:     post.ThreadID,
 		Content:      post.Content,
-		ThumbnailUrl: post.ThumbnailUrl,
+		ThumbnailUrl: ThumbnailUrl,
 		IsPrivate:    post.IsPrivate,
 		LikeCount:    post.LikeCount,
 
@@ -22,10 +34,10 @@ func ToPostResponse(post *entities.Post) *PostResponse {
 	}
 }
 
-func ToPostResponseList(posts []*entities.Post) []*PostResponse {
+func ToPostResponseList(posts []*entities.Post, supabase *database.StorageService) []*PostResponse {
 	res := make([]*PostResponse, 0, len(posts))
 	for _, post := range posts {
-		res = append(res, ToPostResponse(post))
+		res = append(res, ToPostResponse(post, supabase))
 	}
 	return res
 }

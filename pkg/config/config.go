@@ -27,6 +27,10 @@ type Config struct {
 	GOOGLE_CLIENT_ID          string
 	GOOGLE_CLIENT_SECRET      string
 	GOOGLE_OAUTH_REDIRECT_URL string
+
+	SUPABASE_URL string
+	SUPABASE_KEY string
+	BucketName   string
 }
 
 func GetConfig(env string) *Config {
@@ -56,6 +60,10 @@ func GetConfig(env string) *Config {
 		GOOGLE_CLIENT_ID:          getEnv("GOOGLE_CLIENT_ID", ""),
 		GOOGLE_CLIENT_SECRET:      getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GOOGLE_OAUTH_REDIRECT_URL: getEnv("GOOGLE_OAUTH_REDIRECT_URL", ""),
+
+		SUPABASE_URL: getEnv("SUPABASE_URL", ""),
+		SUPABASE_KEY: getEnv("SUPABASE_KEY", ""),
+		BucketName:   getEnv("BUCKET_NAME", ""),
 	}
 
 	cfg.DatabaseDSN = fmt.Sprintf(

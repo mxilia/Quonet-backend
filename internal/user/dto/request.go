@@ -6,7 +6,7 @@ type CreateUserByGoogleRequest struct {
 }
 
 type UserPatchRequest struct {
-	Handler string `json:"handler,omitempty"`
+	Handler string `json:"handler,omitempty" validate:"min=3,max=16"`
 	Bio     string `json:"bio,omitempty"`
 	Role    string `json:"role,omitempty"`
 }
