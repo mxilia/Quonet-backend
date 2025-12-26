@@ -14,11 +14,7 @@ func ToUserResponse(user *entities.User) *UserResponse {
 		Role:        user.Role,
 		IsBanned:    user.IsBanned,
 		BannedUntil: user.BannedUntil,
-
-		Posts:    user.Posts,
-		Comments: user.Comments,
-
-		CreatedAt: user.CreatedAt,
+		CreatedAt:   user.CreatedAt,
 	}
 }
 

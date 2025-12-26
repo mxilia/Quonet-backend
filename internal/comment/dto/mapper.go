@@ -49,7 +49,7 @@ func FromCommentCreateRequest(authorID uuid.UUID, req *CreateCommentRequest) (*e
 	}
 
 	return &entities.Comment{
-		AuthorID: authorID,
+		AuthorID: &authorID,
 		Content:  req.Content,
 		ParentID: parentID,
 		RootID:   rootID,

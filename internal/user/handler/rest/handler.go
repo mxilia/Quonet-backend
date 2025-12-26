@@ -45,6 +45,23 @@ func NewHttpUserHandler(userUseCase usecase.UserUseCase, sessionUseCase sessionU
 	}
 }
 
+func removeToken(c *fiber.Ctx, h *HttpUserHandler) {
+	c.Cookie(&fiber.Cookie{
+		Name:     "accessToken",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+		Domain:   h.cfg.Domain,
+	})
+	c.Cookie(&fiber.Cookie{
+		Name:     "refreshToken",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+		Domain:   h.cfg.Domain,
+	})
+}
+
 func checkUserForbidAction(c *fiber.Ctx, h *HttpUserHandler, targetID uuid.UUID) error {
 	existedUser, err := h.usecase.FindUserByID(targetID)
 	if err != nil {
@@ -276,9 +293,23 @@ func (h *HttpUserHandler) DeleteUser(c *fiber.Ctx) error {
 		return responses.Error(c, err)
 	}
 
+	tokenStr := c.Cookies("refreshToken")
+	claims, err := h.tokenMaker.VerifyToken(tokenStr)
+	if err != nil {
+		removeToken(c, h)
+		return responses.Error(c, appError.ErrUnauthorized)
+	}
+
+	if err := h.sessionUseCase.DeleteSession(claims.RegisteredClaims.ID); err != nil {
+		removeToken(c, h)
+		return responses.ErrorWithMessage(c, err, "session error")
+	}
+
 	if err := h.usecase.DeleteUser(userID); err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to delete user by id")
 	}
+
+	removeToken(c, h)
 
 	return responses.Message(c, fiber.StatusOK, "deleted successfully")
 }
