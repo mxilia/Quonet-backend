@@ -8,6 +8,8 @@ import (
 	"github.com/mxilia/Quonet-backend/pkg/config"
 	"github.com/mxilia/Quonet-backend/pkg/database"
 	"github.com/mxilia/Quonet-backend/pkg/middleware"
+	ratelimit "github.com/mxilia/Quonet-backend/pkg/middleware/rate_limit"
+	"github.com/mxilia/Quonet-backend/pkg/redisclient"
 	"github.com/mxilia/Quonet-backend/pkg/routes"
 	"gorm.io/gorm"
 )
@@ -28,12 +30,12 @@ func setupOwner(db *gorm.DB) error {
 	return nil
 }
 
-func setupDependencies(env string) (*gorm.DB, *database.StorageService, *config.Config, error) {
+func setupDependencies(env string) (*gorm.DB, *database.StorageService, *redisclient.Client, *ratelimit.RateLimiter, *config.Config, error) {
 	cfg := config.GetConfig(env)
 
 	db, err := database.Connect(cfg)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	storageService := database.ConnectStorage(cfg)
@@ -43,23 +45,30 @@ func setupDependencies(env string) (*gorm.DB, *database.StorageService, *config.
 	}
 
 	if err := db.AutoMigrate(&entities.Thread{}, &entities.User{}, &entities.Post{}, &entities.Like{}, &entities.Comment{}, &entities.Session{}, &entities.Announcement{}); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	if err := setupOwner(db); err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
-	return db, storageService, cfg, nil
+	redis, err := redisclient.New(cfg.RedisAddr, cfg.RedisPassword, 0)
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
+	}
+
+	rateLimiter := ratelimit.New(redis)
+
+	return db, storageService, redis, rateLimiter, cfg, nil
 }
 
-func setupRestServer(db *gorm.DB, supabase *database.StorageService, cfg *config.Config) (*fiber.App, error) {
+func setupRestServer(db *gorm.DB, storage *database.StorageService, rateLimiter *ratelimit.RateLimiter, cfg *config.Config) (*fiber.App, error) {
 	app := fiber.New(fiber.Config{
-		BodyLimit: 5 * 1024 * 1024,
+		BodyLimit: 1 * 1024 * 1024,
 	})
 	middleware.FiberMiddleware(app, cfg)
-	routes.RegisterPublicRoutes(app, db, supabase, cfg)
-	routes.RegisterPrivateRoutes(app, db, supabase, cfg)
+	routes.RegisterPublicRoutes(app, db, storage, rateLimiter, cfg)
+	routes.RegisterPrivateRoutes(app, db, storage, rateLimiter, cfg)
 	routes.RegisterNotFoundRoute(app)
 	return app, nil
 }

@@ -35,10 +35,11 @@ import (
 	"github.com/mxilia/Quonet-backend/pkg/config"
 	"github.com/mxilia/Quonet-backend/pkg/database"
 	"github.com/mxilia/Quonet-backend/pkg/middleware"
+	ratelimit "github.com/mxilia/Quonet-backend/pkg/middleware/rate_limit"
 	"gorm.io/gorm"
 )
 
-func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, storageService *database.StorageService, cfg *config.Config) {
+func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, storageService *database.StorageService, limiter *ratelimit.RateLimiter, cfg *config.Config) {
 
 	/* === Dependencies Wiring === */
 
@@ -77,44 +78,129 @@ func RegisterPrivateRoutes(app *fiber.App, db *gorm.DB, storageService *database
 
 	api := app.Group("/api/v2", middleware.JWTMiddleware(cfg, sessionUseCase, userUseCase))
 
-	api.Get("/me", userHandler.GetUser)
+	api.Get(
+		"/me",
+		limiter.Use(ratelimit.UserRead, ratelimit.UserKey),
+		userHandler.GetUser,
+	)
+
+	authGroup := api.Group("/auth")
+
+	authGroup.Post(
+		"/logout",
+		limiter.Use(ratelimit.AuthLogout, ratelimit.UserKey),
+		sessionHandler.Logout,
+	)
 
 	threadGroup := api.Group("/threads")
 
-	threadGroup.Post("/", middleware.RequireAdmin(), threadHandler.CreateThread)
-	threadGroup.Delete("/:id", middleware.RequireAdmin(), threadHandler.DeleteThread)
+	threadGroup.Post(
+		"/",
+		middleware.RequireAdmin(),
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		threadHandler.CreateThread,
+	)
+	threadGroup.Delete(
+		"/:id",
+		middleware.RequireAdmin(),
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		threadHandler.DeleteThread,
+	)
 
 	sessionGroup := api.Group("/sessions")
 
-	sessionGroup.Patch("/:email", middleware.RequireAdmin(), sessionHandler.RevokeToken)
+	sessionGroup.Patch(
+		"/:email",
+		middleware.RequireAdmin(),
+		limiter.Use(ratelimit.AdminWrite, ratelimit.UserKey),
+		sessionHandler.RevokeToken,
+	)
 
 	userGroup := api.Group("/users")
 
-	userGroup.Patch("/:id", userHandler.PatchUser)
-	userGroup.Delete("/:id", userHandler.DeleteUser)
+	userGroup.Patch(
+		"/:id",
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		userHandler.PatchUser,
+	)
+	userGroup.Delete(
+		"/:id",
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		userHandler.DeleteUser,
+	)
 
 	postGroup := api.Group("/posts")
 
-	postGroup.Post("/", postHandler.CreatePost)
-	postGroup.Get("/private", postHandler.FindPrivatePosts)
-	postGroup.Get("/private/:id", postHandler.FindPrivatePostByID)
-	postGroup.Patch("/:id", postHandler.PatchPost)
-	postGroup.Delete("/:id", postHandler.DeletePost)
+	postGroup.Post(
+		"/",
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		postHandler.CreatePost,
+	)
+	postGroup.Get(
+		"/private",
+		limiter.Use(ratelimit.UserRead, ratelimit.UserKey),
+		postHandler.FindPrivatePosts,
+	)
+	postGroup.Get(
+		"/private/:id",
+		limiter.Use(ratelimit.UserRead, ratelimit.UserKey),
+		postHandler.FindPrivatePostByID,
+	)
+	postGroup.Patch(
+		"/:id",
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		postHandler.PatchPost,
+	)
+	postGroup.Delete(
+		"/:id",
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		postHandler.DeletePost,
+	)
 
 	likeGroup := api.Group("/likes")
 
-	likeGroup.Post("/", likeHandler.CreateLike)
-	likeGroup.Get("/attributes/state", likeHandler.GetLikeState)
+	likeGroup.Post(
+		"/",
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		likeHandler.CreateLike,
+	)
+	likeGroup.Get(
+		"/attributes/state",
+		limiter.Use(ratelimit.UserRead, ratelimit.UserKey),
+		likeHandler.GetLikeState,
+	)
 	// likeGroup.Delete("/:id", middleware.RequireUser(), likeHandler.DeleteLike)
 
 	commentGroup := api.Group("/comments")
 
-	commentGroup.Post("/", commentHandler.CreateComment)
-	commentGroup.Patch("/:id", commentHandler.PatchComment)
-	commentGroup.Delete("/:id", commentHandler.DeleteComment)
+	commentGroup.Post(
+		"/",
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		commentHandler.CreateComment,
+	)
+	commentGroup.Patch(
+		"/:id",
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		commentHandler.PatchComment,
+	)
+	commentGroup.Delete(
+		"/:id",
+		limiter.Use(ratelimit.UserWrite, ratelimit.UserKey),
+		commentHandler.DeleteComment,
+	)
 
 	announcementGroup := api.Group("/announcements")
 
-	announcementGroup.Post("/", middleware.RequireAdmin(), announcementHandler.SaveAnnouncement)
-	announcementGroup.Delete("/:id", middleware.RequireAdmin(), announcementHandler.DeleteAnnouncement)
+	announcementGroup.Post(
+		"/",
+		middleware.RequireAdmin(),
+		limiter.Use(ratelimit.AdminWrite, ratelimit.UserKey),
+		announcementHandler.SaveAnnouncement,
+	)
+	announcementGroup.Delete(
+		"/:id",
+		middleware.RequireAdmin(),
+		limiter.Use(ratelimit.AdminWrite, ratelimit.UserKey),
+		announcementHandler.DeleteAnnouncement,
+	)
 }

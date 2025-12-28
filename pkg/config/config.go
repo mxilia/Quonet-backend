@@ -31,6 +31,9 @@ type Config struct {
 	SUPABASE_URL string
 	SUPABASE_KEY string
 	BucketName   string
+
+	RedisAddr     string
+	RedisPassword string
 }
 
 func GetConfig(env string) *Config {
@@ -64,6 +67,9 @@ func GetConfig(env string) *Config {
 		SUPABASE_URL: getEnv("SUPABASE_URL", ""),
 		SUPABASE_KEY: getEnv("SUPABASE_KEY", ""),
 		BucketName:   getEnv("BUCKET_NAME", ""),
+
+		RedisAddr:     getEnv("REDIS_ADDR", ""),
+		RedisPassword: getEnv("REDIS_PASSWORD", ""),
 	}
 
 	cfg.DatabaseDSN = fmt.Sprintf(

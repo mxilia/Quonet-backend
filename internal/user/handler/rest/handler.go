@@ -75,12 +75,12 @@ func checkUserForbidAction(c *fiber.Ctx, h *HttpUserHandler, targetID uuid.UUID)
 }
 
 func (h *HttpUserHandler) GetUser(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
-	if userID == nil {
+	userID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
 		return responses.Error(c, appError.ErrUnauthorized)
 	}
 
-	user, err := h.usecase.FindUserByID(userID.(uuid.UUID))
+	user, err := h.usecase.FindUserByID(userID)
 	if err != nil {
 		return responses.Error(c, err)
 	}
@@ -218,7 +218,6 @@ func (h *HttpUserHandler) FindUserByID(c *fiber.Ctx) error {
 		return responses.ErrorWithMessage(c, err, "failed to find user by id")
 	}
 	return c.JSON(dto.ToUserResponse(user))
-
 }
 
 func (h *HttpUserHandler) FindUserByHandler(c *fiber.Ctx) error {

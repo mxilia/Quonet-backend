@@ -21,7 +21,6 @@ import (
 	commentRepository "github.com/mxilia/Quonet-backend/internal/comment/repository"
 	commentUseCase "github.com/mxilia/Quonet-backend/internal/comment/usecase"
 
-	sessionHandler "github.com/mxilia/Quonet-backend/internal/session/handler/rest"
 	sessionRepository "github.com/mxilia/Quonet-backend/internal/session/repository"
 	sessionUseCase "github.com/mxilia/Quonet-backend/internal/session/usecase"
 
@@ -35,9 +34,10 @@ import (
 
 	"github.com/mxilia/Quonet-backend/pkg/config"
 	"github.com/mxilia/Quonet-backend/pkg/database"
+	ratelimit "github.com/mxilia/Quonet-backend/pkg/middleware/rate_limit"
 )
 
-func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, storageService *database.StorageService, cfg *config.Config) {
+func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, storageService *database.StorageService, limiter *ratelimit.RateLimiter, cfg *config.Config) {
 
 	/* === Dependencies Wiring === */
 
@@ -53,8 +53,6 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, storageService *database.
 	userRepo := userRepository.NewGormUserRepository(db)
 	userUseCase := userUseCase.NewUserService(userRepo)
 	userHandler := userHandler.NewHttpUserHandler(userUseCase, sessionUseCase, cfg)
-
-	sessionHandler := sessionHandler.NewHttpSessionHandler(sessionUseCase, userUseCase, cfg)
 
 	postRepo := postRepository.NewGormPostRepository(db)
 	postUseCase := postUseCase.NewPostService(postRepo, storageService, txManager)
@@ -74,11 +72,9 @@ func RegisterPublicRoutes(app *fiber.App, db *gorm.DB, storageService *database.
 
 	/* === Routes === */
 
-	api := app.Group("/api/v2")
+	api := app.Group("/api/v2", limiter.Use(ratelimit.UserRead, ratelimit.UserOrIPKey))
 
 	authGroup := api.Group("/auth")
-
-	authGroup.Post("/logout", sessionHandler.Logout)
 
 	googleAuthGroup := authGroup.Group("/google")
 
