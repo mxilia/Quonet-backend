@@ -1,0 +1,41 @@
+name: Deploy Quonet-backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Sources
+        run: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        run: docker build -t symoney/quonet-backend .
+
+      - name: Push Image to Docker Hub
+        run: docker push symoney/quonet-backend:latest
+  
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull Docker Image
+        run: docker pull symoney/quonet-backend:latest
+
+      - name: Write env file
+        run: |
+          mkdir -p /opt/quonet
+          echo "${{ secrets.ENV_PRODUCTION }}" > /opt/quonet/.env.production
+          chmod 600 /opt/quonet/.env.production
+      
+      - name: Deploy stack
+        working-directory: /opt/quonet
+        run: |
+          docker compose pull
+          docker compose up -d

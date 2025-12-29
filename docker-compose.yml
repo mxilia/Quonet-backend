@@ -1,33 +1,29 @@
 services:
   postgres:
-    image: postgres:latest
-    container_name: postgres
+    image: postgres:16
     environment:
       POSTGRES_DB: db_name
       POSTGRES_USER: db_user
       POSTGRES_PASSWORD: db_password
     volumes:
-      - postgres_data:/var/lib/postgresql/data/pgdata/ 
-    ports:
-      - "5432:5432"
+      - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5050:80"
+  backend:
+    image: symoney/quonet-backend:latest
+    container_name: quonet-backend
+    restart: unless-stopped
     depends_on:
       - postgres
-    restart: unless-stopped
+      - redis
+    env_file:
+      - .env.production
+    ports:
+      - "8000:8000"  
   
   redis:
-    image: redis:7
-    ports:
-      - "6379:6379"
+    image: redis:7-alpine
+    restart: unless-stopped
 
 volumes:
   postgres_data:
