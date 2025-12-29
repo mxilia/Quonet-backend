@@ -6,9 +6,9 @@ import (
 
 func ToUserResponse(user *entities.User) *UserResponse {
 	return &UserResponse{
-		ID:          user.ID,
-		Handler:     user.Handler,
-		Email:       user.Email,
+		ID:      user.ID,
+		Handler: user.Handler,
+		// Email:       user.Email,
 		ProfileUrl:  user.ProfileUrl,
 		Bio:         user.Bio,
 		Role:        user.Role,
