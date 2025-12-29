@@ -26,7 +26,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Clear Old Docker Images
-        run: docker image prune -a
+        run: docker image prune -a -f
 
       - name: Pull Docker Image
         run: docker pull symoney/quonet-backend:latest
