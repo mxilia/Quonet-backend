@@ -11,7 +11,7 @@ func FiberMiddleware(app *fiber.App, cfg *config.Config) {
 	app.Use(
 		logger.New(),
 		cors.New(cors.Config{
-			AllowOrigins:     cfg.FRONTEND_URL,
+			AllowOrigins:     cfg.FRONTEND_URL + ",https://www.quonet.dev",
 			AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 			AllowCredentials: true,
 		}),
