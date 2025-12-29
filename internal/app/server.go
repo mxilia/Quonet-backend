@@ -13,5 +13,5 @@ func Start() {
 		log.Fatalf("Failed to setup Rest server: %v", err)
 	}
 
-	app.Listen(":8000")
+	app.Listen("0.0.0.0:8000")
 }
