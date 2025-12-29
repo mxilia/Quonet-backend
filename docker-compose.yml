@@ -9,17 +9,17 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  backend:
-    image: symoney/quonet-backend:latest
-    container_name: quonet-backend
-    restart: unless-stopped
-    depends_on:
-      - postgres
-      - redis
-    env_file:
-      - .env.production
-    ports:
-      - "127.0.0.1:8000:8000"  
+  # backend:
+  #   image: symoney/quonet-backend:latest
+  #   container_name: quonet-backend
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - postgres
+  #     - redis
+  #   env_file:
+  #     - .env.production
+  #   ports:
+  #     - "127.0.0.1:8000:8000"  
   
   redis:
     image: redis:7
