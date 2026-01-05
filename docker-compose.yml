@@ -8,6 +8,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    ports:
+      - "5432:5432"
 
   # backend:
   #   image: symoney/quonet-backend:latest
@@ -19,11 +21,13 @@ services:
   #   env_file:
   #     - .env.production
   #   ports:
-  #     - "127.0.0.1:8000:8000"  
-  
+  #     - "127.0.0.1:8000:8000"
+
   redis:
     image: redis:7
     restart: unless-stopped
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:
