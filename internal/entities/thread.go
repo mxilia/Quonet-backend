@@ -9,7 +9,7 @@ import (
 
 type Thread struct {
 	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Title       string    `gorm:"type:varchar(255);unique" json:"title"` // Need to validate
+	Title       string    `gorm:"type:varchar(255);uniqueKey" json:"title"` // Need to validate
 	Description string    `gorm:"text" json:"description"`
 	ImageUrl    string    `gorm:"type:varchar(255)" json:"image_url"`
 
