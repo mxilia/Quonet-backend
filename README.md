@@ -30,6 +30,9 @@
  - [Frontend](https://github.com/mxilia/Quonet-frontend)
  - [Backend](https://github.com/mxilia/Quonet-backend)
 
+<h2 id="summary">📄 Project Summary</h2>
+This project is built with Go using Clean Architecture and implements a RESTful API with Fiber v2. PostgreSQL is used for data persistence via GORM, Redis handles rate limiting, and images are stored using Supabase.
+
 <h2 id="tech">💻 Tech Stack</h2>
 
  - __Frontend:__ Next.js, ShadCN, Tailwind CSS, Zod, TanStack, Zustand
