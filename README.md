@@ -30,7 +30,7 @@
  - [Frontend](https://github.com/mxilia/Quonet-frontend)
  - [Backend](https://github.com/mxilia/Quonet-backend)
 
-<h2 id="summary">📄 Repository Summary</h2>
+<h2 id="summary">📄 Summary</h2>
 
 The frontend is built with Next.js following [Bulletproof Architecture](https://github.com/alan2207/bulletproof-react), leveraging server-side rendering for fast initial page loads, TanStack for client-side caching, and Zustand for centralized state management.
 
