@@ -30,8 +30,11 @@
  - [Frontend](https://github.com/mxilia/Quonet-frontend)
  - [Backend](https://github.com/mxilia/Quonet-backend)
 
-<h2 id="summary">📄 Project Summary</h2>
-This project is built with Go using Clean Architecture and implements a RESTful API with Fiber v2. PostgreSQL is used for data persistence via GORM, Redis handles rate limiting, and images are stored using Supabase.
+<h2 id="summary">📄 Repository Summary</h2>
+
+The frontend is built with Next.js following [Bulletproof Architecture](https://github.com/alan2207/bulletproof-react), leveraging server-side rendering for fast initial page loads, TanStack for client-side caching, and Zustand for centralized state management.
+
+Backend is built with Go using Clean Architecture and implements a RESTful API with Fiber v2. PostgreSQL is used for data persistence via GORM, Redis handles rate limiting, and images are stored using Supabase.
 
 <h2 id="tech">💻 Tech Stack</h2>
 
