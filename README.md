@@ -112,6 +112,16 @@ go run cmd/app/main.go
 ```
 And there you go, the backend is up and running.
 
+<h3 id="note"> Note </h3>
+
+📁 `/internal/app/server.go`
+```
+6 | db, storage, _, rateLimiter, cfg, err := setupDependencies(CURRENT_ENV)
+```
+Make sure to replace CURRENT_ENV according to your environment:
+- Set `CURRENT_ENV = "production"` for a production environment.
+- Set `CURRENT_ENV = "dev"` for a development environment.
+
 <h2 id="structure">🧱 Project Structure</h2>
 
 ```
