@@ -5,6 +5,7 @@
 [POSTGRESQL_BADGE]:https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white
 [SUPABASE_BADGE]:https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white
 [TAILWINDCSS_BADGE]:https://img.shields.io/badge/TailwindCSS-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white
+[NEXT_BADGE]:https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 
 <h1 align="center" style="font-weight: bold;">Quonet</h1>
 <p align="center">
@@ -24,6 +25,7 @@
 ![PostgreSQL][POSTGRESQL_BADGE]
 ![Supabase][SUPABASE_BADGE]
 ![TailwindCSS][TAILWINDCSS_BADGE]
+![Next.js][NEXT_BADGE]
 
 <h2 id="started">📁 Repositories</h2>
 
