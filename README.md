@@ -11,7 +11,7 @@
  A forum web application that allows users to create, delete, and like or dislike posts. Users can also update their profile information, including their username and bio. The platform supports content moderation through an admin dashboard.
 </p>
 
-![Alt text](assets/quonet_page.png)
+![Alt text](.github/assets/quonet_page.png)
 
 <h3 align="center">
     <a href="https://www.quonet.dev"> www.quonet.dev</a>
