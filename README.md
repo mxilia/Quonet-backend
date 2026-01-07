@@ -13,11 +13,9 @@
 
 ![Alt text](assets/quonet_page.png)
 
-<a href="https://www.quonet.dev">
-    <h3 align="center">
-        www.quonet.dev
-    </h3>
-</a>
+<h3 align="center">
+    <a href="https://www.quonet.dev"> www.quonet.dev</a>
+</h3>
 
 ![typescript][TYPESCRIPT_BADGE]
 ![Go][GO_BADGE]
