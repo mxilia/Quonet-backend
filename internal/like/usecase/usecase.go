@@ -75,6 +75,11 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 			return err
 		}
 
+		likeCount, err := s.CountLikes(like.ParentType, like.OwnerID, like.ParentID)
+		if err != nil {
+			return err
+		}
+
 		switch like.ParentType {
 
 		case "post":
@@ -85,7 +90,7 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 			if post == nil {
 				return fmt.Errorf("post does not exist")
 			}
-			if err := s.postRepo.Patch(txCtx, like.ParentID, &entities.Post{LikeCount: post.LikeCount + updateCount}); err != nil {
+			if err := s.postRepo.Patch(txCtx, like.ParentID, &entities.Post{LikeCount: likeCount + updateCount}); err != nil {
 				return err
 			}
 

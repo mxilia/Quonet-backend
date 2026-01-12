@@ -25,5 +25,5 @@ go.work.sum
 .env*
 !.env.example
 
-# Editor/IDE
-# .idea/
+# custom
+/internal/app/server.go

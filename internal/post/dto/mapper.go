@@ -15,6 +15,8 @@ func ToPostResponse(post *entities.Post, storageService *database.StorageService
 		}
 	}
 
+	post.Author.Email = ""
+
 	return &PostResponse{
 		ID:           post.ID,
 		Title:        post.Title,
