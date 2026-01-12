@@ -25,7 +25,7 @@ func checkCommentForbidAction(c *fiber.Ctx, h *HttpCommentHandler, commentID uui
 		return err
 	}
 
-	if c.Locals("role").(string) == "member" && existedComment.AuthorID != c.Locals("user_id") {
+	if c.Locals("role").(string) == "member" && existedComment.AuthorID != c.Locals("user_id").(*uuid.UUID) {
 		return appError.ErrForbidden
 	}
 	return nil
