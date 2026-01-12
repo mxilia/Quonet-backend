@@ -107,7 +107,7 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 
 		fmt.Println("liked id:", likedID)
 		if likedID != uuid.Nil {
-			if err := s.repo.Delete(txCtx, likedID); err != nil {
+			if err := s.DeleteLike(txCtx, likedID); err != nil {
 				return err
 			}
 		}
