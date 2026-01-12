@@ -75,7 +75,7 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 			return err
 		}
 
-		likeCount, err := s.CountLikes(like.ParentType, like.OwnerID, like.ParentID)
+		likeCount, err := s.CountLikes(like.ParentType, like.OwnerID, uuid.Nil)
 		if err != nil {
 			return err
 		}
@@ -171,7 +171,7 @@ func (s *LikeService) DeleteLike(ctx context.Context, id uuid.UUID) error {
 			return err
 		}
 
-		likeCount, err := s.CountLikes(like.ParentType, like.OwnerID, like.ParentID)
+		likeCount, err := s.CountLikes(like.ParentType, like.OwnerID, uuid.Nil)
 		if err != nil {
 			return err
 		}
