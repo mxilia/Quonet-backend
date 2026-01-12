@@ -102,7 +102,7 @@ func (s *LikeService) CreateLike(ctx context.Context, like *entities.Like) error
 			if comment == nil {
 				return fmt.Errorf("comment does not exist")
 			}
-			if err := s.commentRepo.Patch(txCtx, like.ParentID, &entities.Comment{LikeCount: comment.LikeCount + updateCount}); err != nil {
+			if err := s.commentRepo.Patch(txCtx, like.ParentID, &entities.Comment{LikeCount: likeCount + updateCount}); err != nil {
 				return err
 			}
 
