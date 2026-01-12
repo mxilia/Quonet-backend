@@ -12,5 +12,5 @@ type LikeUseCase interface {
 	FindLikes(parentType string, ownerID uuid.UUID, parentID uuid.UUID, page int, limit int) ([]*entities.Like, int64, error)
 	FindLikeByID(id uuid.UUID) (*entities.Like, error)
 	CountLikes(parentType string, ownerID uuid.UUID, parentID uuid.UUID) (int64, error)
-	DeleteLike(id uuid.UUID) error
+	DeleteLike(ctx context.Context, id uuid.UUID) error
 }

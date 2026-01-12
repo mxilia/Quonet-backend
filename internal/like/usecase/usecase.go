@@ -155,9 +155,26 @@ func (s *LikeService) CountLikes(parentType string, ownerID uuid.UUID, parentID 
 	return count, nil
 }
 
-func (s *LikeService) DeleteLike(id uuid.UUID) error {
-	if err := s.repo.Delete(context.TODO(), id); err != nil {
-		return err
-	}
-	return nil
+func (s *LikeService) DeleteLike(ctx context.Context, id uuid.UUID) error {
+	return s.txManager.Do(ctx, func(txCtx context.Context) error {
+		like, err := s.repo.FindByID(id)
+		if err != nil {
+			return err
+		}
+
+		if err := s.repo.Delete(ctx, id); err != nil {
+			return err
+		}
+
+		likeCount, err := s.CountLikes(like.ParentType, like.OwnerID, like.ParentID)
+		if err != nil {
+			return err
+		}
+
+		if err := s.postRepo.Patch(ctx, id, &entities.Post{LikeCount: likeCount}); err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

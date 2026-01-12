@@ -194,7 +194,7 @@ func (h *HttpLikeHandler) DeleteLike(c *fiber.Ctx) error {
 
 	checkLikeForbidAction(c, h, id)
 
-	if err := h.usecase.DeleteLike(id); err != nil {
+	if err := h.usecase.DeleteLike(c.Context(), id); err != nil {
 		responses.ErrorWithMessage(c, err, "failed to delete like")
 	}
 	return responses.Message(c, fiber.StatusOK, "deleted successfully")
