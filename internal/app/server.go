@@ -3,7 +3,7 @@ package app
 import "log"
 
 func Start() {
-	db, storage, _, rateLimiter, cfg, err := setupDependencies("dev")
+	db, storage, _, rateLimiter, cfg, err := setupDependencies("production")
 	if err != nil {
 		log.Fatalf("Failed to setup dependencies: %v", err)
 	}
