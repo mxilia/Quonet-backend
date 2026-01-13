@@ -295,20 +295,26 @@ func (h *HttpUserHandler) DeleteUser(c *fiber.Ctx) error {
 	tokenStr := c.Cookies("refreshToken")
 	claims, err := h.tokenMaker.VerifyToken(tokenStr)
 	if err != nil {
-		removeToken(c, h)
+		if userID == claims.ID {
+			removeToken(c, h)
+		}
 		return responses.Error(c, appError.ErrUnauthorized)
 	}
 
-	if err := h.sessionUseCase.DeleteSession(claims.RegisteredClaims.ID); err != nil {
-		removeToken(c, h)
-		return responses.ErrorWithMessage(c, err, "session error")
+	if userID == claims.ID {
+		if err := h.sessionUseCase.DeleteSession(claims.RegisteredClaims.ID); err != nil {
+			removeToken(c, h)
+			return responses.ErrorWithMessage(c, err, "session error")
+		}
 	}
 
 	if err := h.usecase.DeleteUser(userID); err != nil {
 		return responses.ErrorWithMessage(c, err, "failed to delete user by id")
 	}
 
-	removeToken(c, h)
+	if userID == claims.ID {
+		removeToken(c, h)
+	}
 
 	return responses.Message(c, fiber.StatusOK, "deleted successfully")
 }
